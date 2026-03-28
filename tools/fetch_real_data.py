@@ -138,9 +138,10 @@ def main():
     # EURUSD=X is EUR/USD.
     
     assets = [
+        ("XAUUSD", "XAUUSD=X"),
         ("EURUSD", "EURUSD=X"),
         ("GBPUSD", "GBPUSD=X"),
-        ("USDJPY", "JPY=X") # Verify if this is correct direction. Usually yes.
+        ("USDJPY", "JPY=X")
     ]
     
     for symbol, ticker in assets:

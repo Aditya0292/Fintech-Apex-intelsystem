@@ -1,0 +1,442 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);line-height:1.6}
+.doc{max-width:100%;padding:0}
+
+.chapter{margin-bottom:0;border-bottom:1px solid var(--color-border-tertiary)}
+.chapter-header{padding:14px 16px;background:var(--color-background-secondary);cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.chapter-title{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--color-text-primary)}
+.chapter-num{font-family:'Space Mono',monospace;font-size:9px;color:var(--color-text-tertiary);margin-right:10px}
+.chapter-body{padding:16px;display:none;flex-direction:column;gap:10px}
+.chapter-body.open{display:flex}
+.chevron{font-size:10px;color:var(--color-text-tertiary);transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+
+.spec-block{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px}
+.spec-title{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--color-text-secondary);margin-bottom:8px}
+.spec-row{display:flex;gap:8px;align-items:flex-start;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.spec-row:last-child{border-bottom:none}
+.spec-key{font-family:'Space Mono',monospace;font-size:10px;color:var(--color-text-secondary);width:160px;flex-shrink:0}
+.spec-val{font-family:'Space Mono',monospace;font-size:10px;color:var(--color-text-primary);flex:1;line-height:1.5}
+.spec-val.hl{color:#c8a84b}
+.spec-val.green{color:#00d084}
+.spec-val.red{color:#e8394a}
+.spec-val.blue{color:#3b8fff}
+.spec-val.muted{color:var(--color-text-tertiary)}
+
+.color-swatch{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:middle;margin-right:5px;border:0.5px solid rgba(255,255,255,.1)}
+.tag{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;padding:2px 7px;border-radius:2px;margin:2px 2px 2px 0;background:var(--color-background-tertiary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.tag.gold{background:rgba(200,168,75,.1);color:#c8a84b;border-color:rgba(200,168,75,.25)}
+.tag.green{background:rgba(0,208,132,.08);color:#00d084;border-color:rgba(0,208,132,.2)}
+.tag.red{background:rgba(232,57,74,.08);color:#e8394a;border-color:rgba(232,57,74,.2)}
+.tag.blue{background:rgba(59,143,255,.08);color:#3b8fff;border-color:rgba(59,143,255,.2)}
+.tag.purple{background:rgba(127,119,221,.08);color:#7F77DD;border-color:rgba(127,119,221,.2)}
+
+.code-block{font-family:'Space Mono',monospace;font-size:9px;background:var(--color-background-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:10px 12px;line-height:1.7;color:var(--color-text-secondary);white-space:pre-wrap;word-break:break-all}
+.code-block .k{color:#c8a84b}
+.code-block .v{color:#00d084}
+.code-block .c{color:var(--color-text-tertiary)}
+
+.anatomy-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.anatomy-card{background:var(--color-background-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px}
+.anatomy-zone{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;margin-bottom:4px}
+.anatomy-detail{font-size:11px;color:var(--color-text-secondary);line-height:1.5}
+
+.progress-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+.progress-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--color-text-secondary);width:120px;flex-shrink:0}
+.progress-track{flex:1;height:5px;background:var(--color-background-tertiary);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px}
+.progress-val{font-family:'Space Mono',monospace;font-size:10px;color:var(--color-text-secondary);width:30px;text-align:right}
+
+.section-intro{font-size:12px;color:var(--color-text-secondary);line-height:1.6;padding:2px 0 8px}
+
+.divider-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--color-text-tertiary);padding:4px 0;border-top:0.5px solid var(--color-border-tertiary);margin-top:4px}
+</style>
+
+<div class="doc">
+
+<!-- ═══════════════════════════════════════════ CHAPTER 1 -->
+<div class="chapter">
+  <div class="chapter-header" onclick="toggle(this)">
+    <div><span class="chapter-num">01 —</span><span class="chapter-title">DESIGN PHILOSOPHY & IDENTITY</span></div>
+    <div class="chevron open">▼</div>
+  </div>
+  <div class="chapter-body open">
+    <p class="section-intro">APEX is not a dashboard. It is a trading intelligence terminal. Every design decision must reinforce that it is a professional instrument, not a product. The aesthetic language is: military precision meets financial institution.</p>
+    <div class="spec-block">
+      <div class="spec-title">CORE AESTHETIC RULES</div>
+      <div class="spec-row"><div class="spec-key">Tone</div><div class="spec-val">Institutional-grade. No friendly rounded shapes. No soft gradients. No marketing aesthetics.</div></div>
+      <div class="spec-row"><div class="spec-key">Density</div><div class="spec-val">Information-dense by default. Every cm² earns its place. Whitespace is deliberate, not decorative.</div></div>
+      <div class="spec-row"><div class="spec-key">Motion</div><div class="spec-val">Only functional. Ticker scroll, status pulse, bar transitions. No bounce, no scale pop, no entrance animations.</div></div>
+      <div class="spec-row"><div class="spec-key">Color language</div><div class="spec-val">Gold = APEX intelligence signal. Green = bullish / profit / live. Red = bearish / risk / loss. Amber = wait / caution / warning. Blue = informational / FVG / neutral.</div></div>
+      <div class="spec-row"><div class="spec-key">Reference blend</div><div class="spec-val">Image 1 layout bones + Image 2 panel density philosophy + Image 3 amber/glow card aesthetic + Bloomberg data monospace system.</div></div>
+      <div class="spec-row"><div class="spec-key">What makes it APEX</div><div class="spec-val">News decay scores visible on every headline. Kelly fraction + ATR stop in the bottom bar. SMC zone annotations on charts. No other retail tool shows these.</div></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">PERSONALITY TAGS</div>
+      <div>
+        <span class="tag gold">institutional</span><span class="tag gold">precise</span><span class="tag">monospaced data</span><span class="tag">information-dense</span><span class="tag green">live-connected</span><span class="tag">dark-first</span><span class="tag purple">AI-powered</span><span class="tag red">risk-aware</span><span class="tag">terminal-native</span><span class="tag blue">multi-timeframe</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 2 -->
+<div class="chapter">
+  <div class="chapter-header" onclick="toggle(this)">
+    <div><span class="chapter-num">02 —</span><span class="chapter-title">COMPLETE COLOR SYSTEM</span></div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="chapter-body">
+    <p class="section-intro">Strict 9-variable background hierarchy. Never use a color outside this system. No transparency hacks, no arbitrary hex values.</p>
+    <div class="spec-block">
+      <div class="spec-title">BACKGROUND LAYERS (darkest → lightest)</div>
+      <div class="spec-row"><div class="spec-key">--bg0: #080c10</div><div class="spec-val muted">Page root, deepest background. Used ONLY for the body/html root.</div></div>
+      <div class="spec-row"><div class="spec-key">--bg1: #0d1117</div><div class="spec-val muted">Primary panels: sidebar, topbar, rightpanel, all card backgrounds.</div></div>
+      <div class="spec-row"><div class="spec-key">--bg2: #111820</div><div class="spec-val muted">Card interiors, table row backgrounds, asset quick-blocks.</div></div>
+      <div class="spec-row"><div class="spec-key">--bg3: #161e28</div><div class="spec-val muted">Hover states on nav items, table rows, any interactive element.</div></div>
+      <div class="spec-row"><div class="spec-key">--bg4: #1c2634</div><div class="spec-val muted">Track backgrounds: progress bars, confidence bars, sparkline backgrounds.</div></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">SEMANTIC SIGNAL COLORS</div>
+      <div class="spec-row"><div class="spec-key">--gold: #c8a84b</div><div class="spec-val hl">Brand. Active tabs, BUY signal label, OB zone borders, brand name. Used sparingly — it earns authority by rarity.</div></div>
+      <div class="spec-row"><div class="spec-key">--gold-dim: #8a6f2e</div><div class="spec-val muted">Gold hover state. Gold inactive elements. Gold card border on non-active cards.</div></div>
+      <div class="spec-row"><div class="spec-key">--green: #00d084</div><div class="spec-val green">Bullish signal, up tick prices, profit values, live status dot glow, MTF BUY bars.</div></div>
+      <div class="spec-row"><div class="spec-key">--green-dim: #00794d</div><div class="spec-val muted">Green hover. Green card borders on dimmed state. Secondary green text.</div></div>
+      <div class="spec-row"><div class="spec-key">--red: #e8394a</div><div class="spec-val red">Bearish signal, down ticks, stop loss values, SELL signal labels, risk warnings.</div></div>
+      <div class="spec-row"><div class="spec-key">--amber: #f5a623</div><div class="spec-val" style="color:#f5a623">WAIT state, caution, news medium-impact, CSM weak values, divergence warnings.</div></div>
+      <div class="spec-row"><div class="spec-key">--blue: #3b8fff</div><div class="spec-val blue">FVG zones, informational badges, neutral signal context, CSM mid-range.</div></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">TEXT HIERARCHY</div>
+      <div class="spec-row"><div class="spec-key">--text-primary: #e2e8f0</div><div class="spec-val muted">Main prices, signal values, active nav items, metric card big numbers.</div></div>
+      <div class="spec-row"><div class="spec-key">--text-secondary: #6b8aaa</div><div class="spec-val muted">Panel labels, table column headers, nav item text, descriptions.</div></div>
+      <div class="spec-row"><div class="spec-key">--text-muted: #3d5570</div><div class="spec-val muted">Section headers (WORKSPACE, ASSETS), bottom bar labels, placeholder text.</div></div>
+      <div class="spec-row"><div class="spec-key">--border: #1e2d3d</div><div class="spec-val muted">All dividers, card borders, panel separators. Always 1px solid, never thicker.</div></div>
+      <div class="spec-row"><div class="spec-key">--border-bright: #2a3f55</div><div class="spec-val muted">Hover state borders, active card outlines, focused input borders.</div></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">SEMANTIC FILLS (for badges, zone fills)</div>
+      <div class="code-block"><span class="k">BUY badge:</span>  <span class="v">background: rgba(0,208,132,.1)   border: rgba(0,208,132,.25)</span>
+<span class="k">SELL badge:</span> <span class="v">background: rgba(232,57,74,.1)    border: rgba(232,57,74,.25)</span>
+<span class="k">WAIT badge:</span> <span class="v">background: rgba(245,166,35,.1)   border: rgba(245,166,35,.25)</span>
+<span class="k">OB zone fill:</span><span class="v">background: rgba(200,168,75,.08)  border: rgba(200,168,75,.3)</span>
+<span class="k">FVG zone fill:</span><span class="v">background: rgba(59,143,255,.08) border: rgba(59,143,255,.25)</span>
+<span class="k">Card top bar:</span><span class="v">height: 2px solid (full opacity color), no transparency</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 3 -->
+<div class="chapter">
+  <div class="chapter-header" onclick="toggle(this)">
+    <div><span class="chapter-num">03 —</span><span class="chapter-title">TYPOGRAPHY SYSTEM</span></div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="chapter-body">
+    <p class="section-intro">Two fonts. No exceptions. Space Mono carries all machine/data output. DM Sans carries all human-readable content. The contrast between the two IS the design.</p>
+    <div class="spec-block">
+      <div class="spec-title">FONT 1 — SPACE MONO (data font)</div>
+      <div class="spec-row"><div class="spec-key">Use for</div><div class="spec-val">ALL prices, ALL percentages, ALL timestamps, ALL labels (WORKSPACE, ASSETS), ticker bar, bottom status bar, section headers (9px uppercase), tab labels, signal values (BUY/SELL/WAIT), confidence scores, Kelly fraction, ATR values, news decay scores.</div></div>
+      <div class="spec-row"><div class="spec-key">Weights</div><div class="spec-val">400 regular + 700 bold only. Bold for prices and signal labels. Regular for everything else.</div></div>
+      <div class="spec-row"><div class="spec-key">Why</div><div class="spec-val">Fixed-width characters prevent layout jitter when prices update. Bloomberg uses this principle. It reads as "machine output" — authoritative, not designed.</div></div>
+      <div class="spec-row"><div class="spec-key">Sizes</div><div class="spec-val">9px labels · 10px table data · 11px section values · 14px card subtitles · 20px metric values · 28px hero prices</div></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">FONT 2 — DM SANS (human font)</div>
+      <div class="spec-row"><div class="spec-key">Use for</div><div class="spec-val">News headlines, nav item names (Overview, Signal Runner), card description text, tooltip prose, any sentence longer than 4 words.</div></div>
+      <div class="spec-row"><div class="spec-key">Weights</div><div class="spec-val">300 light for news headlines, 400 regular for nav items, 500 medium for emphasized labels.</div></div>
+      <div class="spec-row"><div class="spec-key">Sizes</div><div class="spec-val">11px news body · 12px nav items · 13px card descriptions</div></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">LETTER-SPACING RULES</div>
+      <div class="spec-row"><div class="spec-key">Section headers</div><div class="spec-val">letter-spacing: .12em — WORKSPACE, ASSETS, SETTINGS, OVERVIEW</div></div>
+      <div class="spec-row"><div class="spec-key">Column headers</div><div class="spec-val">letter-spacing: .08em — ASSET, SIGNAL, ENTRY, CONFIDENCE</div></div>
+      <div class="spec-row"><div class="spec-key">Tab labels</div><div class="spec-val">letter-spacing: .08em — OVERVIEW, SMC ZONES, CONSENSUS</div></div>
+      <div class="spec-row"><div class="spec-key">Brand name</div><div class="spec-val">letter-spacing: .15em — APEX in topbar</div></div>
+      <div class="spec-row"><div class="spec-key">Prices / numbers</div><div class="spec-val">letter-spacing: 0 — never space out numbers, it ruins alignment</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 4 -->
+<div class="chapter">
+  <div class="chapter-header" onclick="toggle(this)">
+    <div><span class="chapter-num">04 —</span><span class="chapter-title">LAYOUT ARCHITECTURE</span></div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="chapter-body">
+    <p class="section-intro">The layout is a strict 3-zone grid. Nothing bleeds across zones. Each zone has one job.</p>
+    <div class="anatomy-grid">
+      <div class="anatomy-card">
+        <div class="anatomy-zone" style="color:#c8a84b">TOPBAR — 32px fixed height</div>
+        <div class="anatomy-detail">Brand name left. Live price ticker scrolling center (CSS animation). MT5 status dot + label + UTC clock right. Never taller, never shorter. This is the "always on" strip.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="anatomy-zone" style="color:#3b8fff">LEFT NAV — 200px fixed width</div>
+        <div class="anatomy-detail">Workspace nav top. Asset list middle. Two asset quick-view blocks with mini price + ATR bar. Model version + status pinned to bottom. Never collapses on desktop.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="anatomy-zone" style="color:#00d084">MAIN CONTENT — 1fr flex</div>
+        <div class="anatomy-detail">Tab row top (32px). Content grid fills all remaining space. Bottom status bar 22px fixed. The content grid is a 3-column CSS grid with explicit row heights defined by content type.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="anatomy-zone" style="color:#f5a623">RIGHT PANEL — 240px fixed width</div>
+        <div class="anatomy-detail">MTF alignment section. CSM grid. News feed with decay scores. Risk parameters. Scrollable independently. Never has horizontal scroll. Each section separated by 1px border.</div>
+      </div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">CSS GRID SPECIFICATION</div>
+      <div class="code-block"><span class="c">/* Terminal root */</span>
+<span class="k">.terminal</span> {
+  display: grid;
+  grid-template-rows: <span class="v">32px 1fr</span>;
+  height: <span class="v">100vh</span>;
+  overflow: <span class="v">hidden</span>;
+}
+
+<span class="c">/* Body below topbar */</span>
+<span class="k">.body</span> {
+  display: grid;
+  grid-template-columns: <span class="v">200px 1fr 240px</span>;
+  height: calc(100vh - 32px);
+  overflow: hidden;
+}
+
+<span class="c">/* Main content internal */</span>
+<span class="k">.maincontent</span> {
+  display: grid;
+  grid-template-rows: <span class="v">36px 1fr 22px</span>;
+}
+
+<span class="c">/* Content cards grid */</span>
+<span class="k">.content-grid</span> {
+  display: grid;
+  grid-template-columns: <span class="v">1fr 1fr 1fr</span>;
+  grid-template-rows: <span class="v">90px 110px 1fr</span>;
+  gap: <span class="v">1px</span>;
+  background: var(--border); <span class="c">/* gap IS the border */</span>
+}</div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">SPACING CONSTANTS</div>
+      <div class="spec-row"><div class="spec-key">Card padding</div><div class="spec-val">12px top/bottom · 14px left/right — always. No exceptions.</div></div>
+      <div class="spec-row"><div class="spec-key">Section header gap</div><div class="spec-val">margin-bottom: 8px after every .rp-title / .mc-label before content</div></div>
+      <div class="spec-row"><div class="spec-key">Table row height</div><div class="spec-val">padding: 5px 0 — no fixed height, let content breathe naturally at ~28px per row</div></div>
+      <div class="spec-row"><div class="spec-key">Nav item padding</div><div class="spec-val">6px top/bottom · 12px left/right — hover background fills this area</div></div>
+      <div class="spec-row"><div class="spec-key">Grid gap</div><div class="spec-val">1px — the gap color IS the border color (--border). This creates seamless panel joins.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 5 -->
+<div class="chapter">
+  <div class="chapter-header" onclick="toggle(this)">
+    <div><span class="chapter-num">05 —</span><span class="chapter-title">COMPONENT SPECS — EVERY ELEMENT</span></div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="chapter-body">
+
+    <div class="spec-block">
+      <div class="spec-title">A · TOPBAR PRICE TICKER</div>
+      <div class="spec-row"><div class="spec-key">Mechanism</div><div class="spec-val">Two identical <span class="tag">div</span> blocks side by side, CSS @keyframes translateX(-50%) infinite. No JS. Width: max-content.</div></div>
+      <div class="spec-row"><div class="spec-key">Item structure</div><div class="spec-val">SYMBOL (gold mono 10px bold) · PRICE (white mono 10px) · CHANGE (green/red mono 10px). Gap: 8px between parts, 24px between items.</div></div>
+      <div class="spec-row"><div class="spec-key">Speed</div><div class="spec-val">animation-duration: 30s. Slows down on hover: animation-play-state: paused on .ticker-wrap:hover</div></div>
+      <div class="spec-row"><div class="spec-key">Live update</div><div class="spec-val">setInterval every 2000ms. Fetch /api/ticks. Update price text + class (up/dn). Never re-render the DOM node, only update .textContent and className.</div></div>
+    </div>
+
+    <div class="spec-block">
+      <div class="spec-title">B · METRIC CARDS (top row)</div>
+      <div class="spec-row"><div class="spec-key">Top accent bar</div><div class="spec-val">height: 2px, position: absolute top 0, full width. Solid color (no opacity). Gold for confidence, green for signal, blue for news score, red for risk warnings.</div></div>
+      <div class="spec-row"><div class="spec-key">Label</div><div class="spec-val">Space Mono 9px, --text-muted, letter-spacing .1em, uppercase. margin-bottom: 6px.</div></div>
+      <div class="spec-row"><div class="spec-key">Value</div><div class="spec-val">Space Mono 20px 700 weight, --text-primary. If value is a signal word (BUY/SELL), use 16px colored text instead.</div></div>
+      <div class="spec-row"><div class="spec-key">Sub-row</div><div class="spec-val">Two elements: a colored badge pill + a muted context string. Badge: 2px 6px padding, border-radius 2px, rgba background. Context: 9px --text-muted.</div></div>
+      <div class="spec-row"><div class="spec-key">Height</div><div class="spec-val">Fixed 90px. All three metric cards same height. No responsive variation on desktop.</div></div>
+    </div>
+
+    <div class="spec-block">
+      <div class="spec-title">C · EMBEDDED CHART (inline SVG)</div>
+      <div class="spec-row"><div class="spec-key">Approach</div><div class="spec-val">Raw SVG, not a charting library. viewBox="0 0 640 90". Width 100% of container. Height 90px fixed.</div></div>
+      <div class="spec-row"><div class="spec-key">Grid lines</div><div class="spec-val">3 horizontal lines at y=22, 44, 66. stroke: --border, stroke-width: 0.5. No vertical grid lines.</div></div>
+      <div class="spec-row"><div class="spec-key">Price line</div><div class="spec-val">stroke: --green, stroke-width: 1.5, fill: none. Path uses L commands (no curves — terminals are angular).</div></div>
+      <div class="spec-row"><div class="spec-key">Area fill</div><div class="spec-val">linearGradient: green at 25% opacity top → 0% bottom. Clipped to same path as price line + closed to bottom.</div></div>
+      <div class="spec-row"><div class="spec-key">Current price dot</div><div class="spec-val">circle r=3 fill --green at last price point. No animation. A static dot anchors the current price visually.</div></div>
+      <div class="spec-row"><div class="spec-key">OB zones</div><div class="spec-val">rect with rgba(gold, 0.08) fill + rgba(gold, 0.3) stroke 0.5px. 7px Space Mono label "OB" above rect in gold.</div></div>
+      <div class="spec-row"><div class="spec-key">FVG zones</div><div class="spec-val">rect with rgba(blue, 0.08) fill + rgba(blue, 0.25) stroke 0.5px. 7px Space Mono label "FVG" above in blue.</div></div>
+      <div class="spec-row"><div class="spec-key">Y-axis labels</div><div class="spec-val">3 price labels left-anchored at x=2. 7px Space Mono --text-muted. No axis line — the grid line IS the axis.</div></div>
+    </div>
+
+    <div class="spec-block">
+      <div class="spec-title">D · OPPORTUNITY RUNWAY TABLE</div>
+      <div class="spec-row"><div class="spec-key">Columns</div><div class="spec-val">ASSET (80px) · SIGNAL (60px) · ENTRY (70px) · TP/SL (70px) · RR (60px) · CONFIDENCE (1fr bar)</div></div>
+      <div class="spec-row"><div class="spec-key">Header row</div><div class="spec-val">9px Space Mono --text-muted, letter-spacing .08em. padding-bottom: 6px, border-bottom: 1px solid --border.</div></div>
+      <div class="spec-row"><div class="spec-key">Data rows</div><div class="spec-val">10px Space Mono --text-secondary. padding: 5px 0. border-bottom: 0.5px rgba(--border, .5). Hover: background --bg3.</div></div>
+      <div class="spec-row"><div class="spec-key">ASSET cell</div><div class="spec-val">Gold 700 weight. The gold color here signals "this is the instrument, treat it like a ticker symbol."</div></div>
+      <div class="spec-row"><div class="spec-key">SIGNAL cell</div><div class="spec-val">BUY = --green. SELL = --red. WAIT = --amber. Font weight 700. This is the most important column.</div></div>
+      <div class="spec-row"><div class="spec-key">CONFIDENCE bar</div><div class="spec-val">height: 4px track in --bg4. Fill color: green if >75%, amber if 50–75%, blue if <50%. No number — the bar IS the score.</div></div>
+    </div>
+
+    <div class="spec-block">
+      <div class="spec-title">E · SMC STRUCTURE PANEL</div>
+      <div class="spec-row"><div class="spec-key">Row structure</div><div class="spec-val">flex justify-between. Label left (9px mono --text-muted). Value right (10px mono colored).</div></div>
+      <div class="spec-row"><div class="spec-key">Active values</div><div class="spec-val">Color: --green. Means: the condition is confirmed and active (OB zone price range, FVG range, BOS direction).</div></div>
+      <div class="spec-row"><div class="spec-key">Warning values</div><div class="spec-val">Color: --amber. Means: detected but unconfirmed (liquidity sweep detected, inducement level identified).</div></div>
+      <div class="spec-row"><div class="spec-key">Inactive values</div><div class="spec-val">Color: --text-muted. Means: not present in current data (no CHOCH, no sweep).</div></div>
+      <div class="spec-row"><div class="spec-key">Special values</div><div class="spec-val">PREMIUM/DISCOUNT in --blue. INDUCEMENT level in --amber with the actual price number.</div></div>
+    </div>
+
+    <div class="spec-block">
+      <div class="spec-title">F · MTF ALIGNMENT BARS (right panel)</div>
+      <div class="spec-row"><div class="spec-key">Structure</div><div class="spec-val">Timeframe label (28px, 9px mono --text-muted) + track (flex:1) + signal label (28px right-aligned, 9px mono).</div></div>
+      <div class="spec-row"><div class="spec-key">Track</div><div class="spec-val">height: 6px, background: --bg3, border-radius: 1px. Fill is colored by signal direction.</div></div>
+      <div class="spec-row"><div class="spec-key">Fill colors</div><div class="spec-val">BUY = --green fill. SELL = --red fill. WAIT = --amber fill. Fill width = confidence % (0–100%).</div></div>
+      <div class="spec-row"><div class="spec-key">Signal label</div><div class="spec-val">Matches fill color exactly. BUY in green, SELL in red, WAIT in amber.</div></div>
+      <div class="spec-row"><div class="spec-key">Alignment indicator</div><div class="spec-val">Count of aligned TFs shown above section: "3/4 ALIGNED" in gold when ≥3 match. "2/4" in amber. "1/4" or "0/4" in red.</div></div>
+    </div>
+
+    <div class="spec-block">
+      <div class="spec-title">G · CURRENCY STRENGTH METER (CSM)</div>
+      <div class="spec-row"><div class="spec-key">Layout</div><div class="spec-val">2-column CSS grid. 6 cells: USD, EUR, GBP, JPY, AUD, CAD. Each cell: background --bg2, border --border, border-radius 3px, padding 5px 7px.</div></div>
+      <div class="spec-row"><div class="spec-key">Currency label</div><div class="spec-val">9px Space Mono --text-muted. Acts as the "key" for the value below.</div></div>
+      <div class="spec-row"><div class="spec-key">Strength value</div><div class="spec-val">12px Space Mono 700 weight. Positive (+) = --green. Negative (-) = --red. Near zero (±0.5) = --text-secondary.</div></div>
+      <div class="spec-row"><div class="spec-key">Range</div><div class="spec-val">-5.0 to +5.0 typical. Values beyond ±3 should be flagged amber/highlighted. This is your "capital flow at a glance" widget.</div></div>
+    </div>
+
+    <div class="spec-block">
+      <div class="spec-title">H · NEWS FEED WITH DECAY</div>
+      <div class="spec-row"><div class="spec-key">Timestamp</div><div class="spec-val">9px mono --text-muted. Format: "08:32 · 14min ago". The "X ago" is calculated live from event time.</div></div>
+      <div class="spec-row"><div class="spec-key">Headline</div><div class="spec-val">11px DM Sans 300 weight --text-secondary. Line-height 1.3. Max 2 lines. Truncate with ellipsis at 3rd line.</div></div>
+      <div class="spec-row"><div class="spec-key">Impact badge</div><div class="spec-val">HIGH = rgba(red) bg + red text. MED = rgba(amber) bg + amber text. LOW = rgba(green) bg + green text. 8px mono, 2px 5px padding, border-radius 2px.</div></div>
+      <div class="spec-row"><div class="spec-key">Decay score</div><div class="spec-val hl">APEX UNIQUE: "decay: 0.82" in gold 8px mono. This is the exponential decay weight. Shows traders how much influence this event still carries. No other platform shows this number.</div></div>
+      <div class="spec-row"><div class="spec-key">Hover state</div><div class="spec-val">Headline color transitions to --gold on hover. cursor: pointer. Clicking opens full news context panel.</div></div>
+    </div>
+
+    <div class="spec-block">
+      <div class="spec-title">I · RISK PARAMETERS PANEL</div>
+      <div class="spec-row"><div class="spec-key">KELLY (HALF)</div><div class="spec-val">The calculated position fraction. Shows as decimal (0.23). Label --text-muted, value --text-primary.</div></div>
+      <div class="spec-row"><div class="spec-key">ATR (14)</div><div class="spec-val">Current ATR value for active asset. Used to calculate stop distance.</div></div>
+      <div class="spec-row"><div class="spec-key">STOP level</div><div class="spec-val">Exact price level in --red. This is the ATR-anchored stop. Most important risk number.</div></div>
+      <div class="spec-row"><div class="spec-key">TARGET level</div><div class="spec-val">Exact price level in --green. This is the TP level from the signal.</div></div>
+      <div class="spec-row"><div class="spec-key">LOT SIZE</div><div class="spec-val">Calculated lot size in --gold. This is the Kelly-normalized position size for 1% account risk.</div></div>
+      <div class="spec-row"><div class="spec-key">MAX RISK</div><div class="spec-val">Always "1.0% acct" in --amber. Hard ceiling. Non-negotiable. Shows trader the discipline of the system.</div></div>
+    </div>
+
+    <div class="spec-block">
+      <div class="spec-title">J · BOTTOM STATUS BAR</div>
+      <div class="spec-row"><div class="spec-key">Height</div><div class="spec-val">22px fixed. background --bg1. border-top: 1px solid --border.</div></div>
+      <div class="spec-row"><div class="spec-key">Items (left → right)</div><div class="spec-val">MODEL v4.2 · FEATURES 77 · LAST TRAIN 2d · ACCURACY 71.3% · KELLY 0.23 · LOT 0.08 · ATR STOP 18.2 pip · [spacer] · SESSION LONDON</div></div>
+      <div class="spec-row"><div class="spec-key">Item structure</div><div class="spec-val">Label: 9px mono --text-muted. Value: 9px mono --text-secondary. Gap: 6px. Separator between items: 20px gap (no visual divider).</div></div>
+      <div class="spec-row"><div class="spec-key">Accuracy color</div><div class="spec-val">If > 65% = --green. If 50–65% = --amber. If < 50% = --red. This is a live data quality signal.</div></div>
+      <div class="spec-row"><div class="spec-key">Session value</div><div class="spec-val">LONDON / NEW YORK / TOKYO / SYDNEY based on UTC time. Color --text-secondary normally, --gold during most active overlap hours.</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 6 -->
+<div class="chapter">
+  <div class="chapter-header" onclick="toggle(this)">
+    <div><span class="chapter-num">06 —</span><span class="chapter-title">ANIMATION & MOTION RULES</span></div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="chapter-body">
+    <p class="section-intro">Terminals don't dance. Every animation has a job. If it doesn't communicate state change or live data, it doesn't exist.</p>
+    <div class="spec-block">
+      <div class="spec-title">ALLOWED ANIMATIONS</div>
+      <div class="spec-row"><div class="spec-key">Ticker scroll</div><div class="spec-val">@keyframes translateX(-50%). 30s linear infinite. Pauses on hover. This communicates "live market data flowing."</div></div>
+      <div class="spec-row"><div class="spec-key">Status dot pulse</div><div class="spec-val">@keyframes opacity 1→0.4→1. 2s ease-in-out infinite. Only on the MT5 live status dot. Communicates "heartbeat of live connection."</div></div>
+      <div class="spec-row"><div class="spec-key">Bar fill transitions</div><div class="spec-val">transition: width 0.8s ease. Only on MTF bars and confidence bars when data updates. Not on page load.</div></div>
+      <div class="spec-row"><div class="spec-key">Color transitions</div><div class="spec-val">transition: color 150ms. transition: background 150ms. On all hover states. Fast — terminals respond instantly.</div></div>
+      <div class="spec-row"><div class="spec-key">Price flash</div><div class="spec-val">When a price updates, flash background rgba(color, 0.15) for 400ms then fade out. Green flash for up tick, red for down tick.</div></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">FORBIDDEN ANIMATIONS</div>
+      <div>
+        <span class="tag red">scale transforms</span><span class="tag red">bounce/spring</span><span class="tag red">entrance slide-ins</span><span class="tag red">page load stagger</span><span class="tag red">rotate on hover</span><span class="tag red">parallax</span><span class="tag red">skeleton loaders</span><span class="tag red">celebration effects</span><span class="tag red">glow pulses on data</span><span class="tag red">number count-up</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 7 -->
+<div class="chapter">
+  <div class="chapter-header" onclick="toggle(this)">
+    <div><span class="chapter-num">07 —</span><span class="chapter-title">NEXT.JS IMPLEMENTATION NOTES</span></div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="chapter-body">
+    <div class="spec-block">
+      <div class="spec-title">COMPONENT ARCHITECTURE</div>
+      <div class="code-block"><span class="k">app/
+  layout.tsx</span>          <span class="c">— Terminal shell (topbar + 3-col grid)</span>
+<span class="k">  components/
+    Topbar.tsx</span>        <span class="c">— Brand + ticker + status + clock</span>
+<span class="k">    LeftNav.tsx</span>       <span class="c">— Nav + asset blocks + model status</span>
+<span class="k">    MainContent.tsx</span>   <span class="c">— Tab row + content grid + bottombar</span>
+<span class="k">    RightPanel.tsx</span>    <span class="c">— MTF + CSM + news + risk</span>
+<span class="k">    cards/
+      MetricCard.tsx</span>  <span class="c">— Reusable metric with accent bar</span>
+<span class="k">      SignalTable.tsx</span> <span class="c">— Opportunity runway table</span>
+<span class="k">      SMCPanel.tsx</span>    <span class="c">— SMC structure rows</span>
+<span class="k">      ChartSVG.tsx</span>    <span class="c">— Inline SVG chart renderer</span>
+<span class="k">      NewsItem.tsx</span>    <span class="c">— News with decay score</span></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">DATA FLOW</div>
+      <div class="spec-row"><div class="spec-key">Polling interval</div><div class="spec-val">useEffect with setInterval 3000ms. Fetches /api/predict_all. Updates React state. Components re-render only changed values.</div></div>
+      <div class="spec-row"><div class="spec-key">Price ticks</div><div class="spec-val">Separate 2000ms interval for /api/ticks — lighter endpoint, just prices. Updates ticker + asset blocks.</div></div>
+      <div class="spec-row"><div class="spec-key">News feed</div><div class="spec-val">60000ms interval. News doesn't change every 3 seconds. Also recalculates decay scores client-side every 60s.</div></div>
+      <div class="spec-row"><div class="spec-key">Decay calculation</div><div class="spec-val">Client-side: decayScore = Math.exp(-λ * minutesSince). λ = ln(2) / 90. Run on every news render, not from backend.</div></div>
+      <div class="spec-row"><div class="spec-key">CSS variables</div><div class="spec-val">Define all 20 color variables in :root in globals.css. Reference everywhere. Never hardcode hex in component files.</div></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">PERFORMANCE RULES</div>
+      <div class="spec-row"><div class="spec-key">No chart library</div><div class="spec-val">Inline SVG only. No recharts, no D3, no Chart.js. This keeps the bundle lean and gives pixel-perfect control.</div></div>
+      <div class="spec-row"><div class="spec-key">No layout thrash</div><div class="spec-val">Update .textContent directly for price ticks. Don't re-render parent components. Use refs for live price elements.</div></div>
+      <div class="spec-row"><div class="spec-key">overflow: hidden</div><div class="spec-val">On ALL containers. The terminal never scrolls as a page. Only right panel scrolls internally (overflow-y: auto).</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ CHAPTER 8 -->
+<div class="chapter" style="border-bottom:none">
+  <div class="chapter-header" onclick="toggle(this)">
+    <div><span class="chapter-num">08 —</span><span class="chapter-title">THE APEX IDENTITY DETAILS</span></div>
+    <div class="chevron">▼</div>
+  </div>
+  <div class="chapter-body">
+    <p class="section-intro">These are the five details that make APEX unmistakably different from every other trading UI on the planet. Guard them.</p>
+    <div class="spec-block">
+      <div class="spec-title">THE 5 FINGERPRINTS</div>
+      <div class="spec-row"><div class="spec-key hl">1. Decay scores</div><div class="spec-val">Every news item shows "decay: 0.82" in gold mono. This is your exponential decay output made visible. No Bloomberg, no TradingView, no competitor shows this. It is APEX's intellectual signature.</div></div>
+      <div class="spec-row"><div class="spec-key hl">2. Kelly in the statusbar</div><div class="spec-val">The bottom strip shows live Kelly fraction (0.23) and calculated lot size (0.08) updated every signal run. Traders see position sizing as a live output, not a static setting.</div></div>
+      <div class="spec-row"><div class="spec-key hl">3. Consensus score, not just signal</div><div class="spec-val">The ensemble confidence (84.7%) + "3/4 TF ALIGNED" shown simultaneously. Not just BUY — but how certain, and across how many timeframes. This is the ConsensusEngine made visible.</div></div>
+      <div class="spec-row"><div class="spec-key hl">4. SMC zones on chart</div><div class="spec-val">OB and FVG zone rectangles drawn directly on the price chart as rgba fills with labeled borders. Most charting platforms require manual drawing. APEX draws them from the ML pipeline automatically.</div></div>
+      <div class="spec-row"><div class="spec-key hl">5. CSM as capital flow</div><div class="spec-val">The 6-currency grid with +/- values framing the signal context. A BUY on USDJPY with USD at +2.4 and JPY at -3.1 is a very different trade than the same signal with balanced CSM. The grid makes that visible at a glance.</div></div>
+    </div>
+    <div class="spec-block">
+      <div class="spec-title">WHAT NOT TO BUILD (common mistakes)</div>
+      <div>
+        <span class="tag red">no candlestick chart</span><span class="tag red">no toggle dark/light mode</span><span class="tag red">no hero landing section</span><span class="tag red">no onboarding flow</span><span class="tag red">no drag-and-drop widgets</span><span class="tag red">no card shadows</span><span class="tag red">no rounded corners > 8px</span><span class="tag red">no gradient backgrounds</span><span class="tag red">no glassmorphism</span><span class="tag red">no purple or teal accents</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+function toggle(header){
+  const body=header.nextElementSibling;
+  const chev=header.querySelector('.chevron');
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  body.style.display=isOpen?'none':'flex';
+  chev.classList.toggle('open',!isOpen);
+}
+document.querySelectorAll('.chapter-body').forEach(b=>{
+  if(!b.classList.contains('open'))b.style.display='none';
+});
+</script>

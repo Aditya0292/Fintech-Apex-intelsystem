@@ -64,6 +64,7 @@ def get_multi_asset_analysis(symbols: list = None):
     # 1. MARKET CONTEXT (News & CSM)
     # News
     nm = NewsManager()
+    output['market_context']['news'] = nm.get_asset_events("XAUUSD") # USD News
     # CSM
     cp = CSMProvider()
     csm_data = cp.get_latest_csm()
@@ -186,7 +187,7 @@ def main():
             ORIGINAL_STDOUT.write(json.dumps(data, default=str))
             ORIGINAL_STDOUT.flush()
         except Exception as e:
-            with open("debug_crash.txt", "w") as f:
+            with open("logs/debug_crash.txt", "w") as f:
                 f.write(f"Error: {e}\n")
             sys.exit(1)
             

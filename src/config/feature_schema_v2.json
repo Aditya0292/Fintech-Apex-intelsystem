@@ -1,6 +1,6 @@
 {
     "version": "2.0",
-    "feature_count": 77,
+    "feature_count": 89,
     "features": [
         "atr",
         "rsi",
@@ -78,6 +78,13 @@
         "csm_diff",
         "news_impact_base",
         "news_impact_quote",
-        "news_impact_net"
+        "news_impact_net",
+        "hour",
+        "is_london_session",
+        "is_new_york_session",
+        "is_tokyo_session",
+        "london_open",
+        "new_york_open",
+        "london_close"
     ]
 }

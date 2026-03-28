@@ -79,6 +79,85 @@ class MT5Interface:
         # We need lower case
         return df[['time', 'open', 'high', 'low', 'close', 'tick_volume']]
 
+    def place_order(self, symbol: str, type: str, lot: float, sl: float = 0.0, tp: float = 0.0) -> bool:
+        """
+        Executes a Trade Order on MT5.
+        type: 'BUY' or 'SELL'
+        """
+        if not self.connected:
+            if not self.connect(): return False
+            
+        # Get price for order
+        tick = mt5.symbol_info_tick(symbol)
+        if not tick: 
+            print(f"Error: Symbol {symbol} tick not found for order.")
+            return False
+            
+        # Order Type Constants
+        order_type = mt5.ORDER_TYPE_BUY if type == 'BUY' else mt5.ORDER_TYPE_SELL
+        price = tick.ask if type == 'BUY' else tick.bid
+        
+        request = {
+            "action": mt5.TRADE_ACTION_DEAL,
+            "symbol": symbol,
+            "volume": lot,
+            "type": order_type,
+            "price": price,
+            "sl": float(sl),
+            "tp": float(tp),
+            "deviation": 20,
+            "magic": 2026,
+            "comment": "Apex AI Signal",
+            "type_time": mt5.ORDER_TIME_GTC,
+            "type_filling": mt5.ORDER_FILLING_IOC,
+        }
+        
+        # Send
+        result = mt5.order_send(request)
+        if result.retcode != mt5.TRADE_RETCODE_DONE:
+            print(f"Order failed: {result.retcode} | {result.comment}")
+            return False
+            
+        print(f"[{type}] Order Placed - Symbol: {symbol}, Lots: {lot}, Price: {price}")
+        return True
+
+    def get_open_positions(self, symbol: Optional[str] = None):
+        """
+        Retrieves all open positions.
+        """
+        if not self.connected:
+            if not self.connect(): return []
+            
+        positions = mt5.positions_get(symbol=symbol) if symbol else mt5.positions_get()
+        return positions if positions else []
+
+    def close_all_positions(self, symbol: Optional[str] = None):
+        """
+        Safely closes all open positions for a symbol.
+        """
+        positions = self.get_open_positions(symbol)
+        for pos in positions:
+            tick = mt5.symbol_info_tick(pos.symbol)
+            type_close = mt5.ORDER_TYPE_SELL if pos.type == mt5.ORDER_TYPE_BUY else mt5.ORDER_TYPE_BUY
+            price_close = tick.bid if pos.type == mt5.ORDER_TYPE_BUY else tick.ask
+            
+            request = {
+                "action": mt5.TRADE_ACTION_DEAL,
+                "symbol": pos.symbol,
+                "volume": pos.volume,
+                "type": type_close,
+                "position": pos.ticket,
+                "price": price_close,
+                "deviation": 20,
+                "magic": 2026,
+                "comment": "Apex Emergency Close",
+                "type_time": mt5.ORDER_TIME_GTC,
+                "type_filling": mt5.ORDER_FILLING_IOC,
+            }
+            mt5.order_send(request)
+        
+        print(f"Closed {len(positions)} positions.")
+
     def shutdown(self):
         mt5.shutdown()
         self.connected = False

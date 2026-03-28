@@ -17,7 +17,10 @@ from pathlib import Path
 from sklearn.metrics import accuracy_score
 
 # Reuse evaluation loader
-from evaluate import load_all_models, load_data, config
+try:
+    from tools.evaluate import load_all_models, load_data, config
+except ImportError:
+    from evaluate import load_all_models, load_data, config
 
 class Backtester:
     def __init__(self, initial_capital=10000, commission=0.001, slippage=0.0005):
@@ -71,9 +74,9 @@ class Backtester:
             # Position logic
             position = 0
             if conf >= threshold:
-                if pred_class == 1: # Bull
+                if pred_class == 2: # Bull (Index 2 maps to class 1)
                     position = 1
-                elif pred_class == 0: # Bear
+                elif pred_class == 0: # Bear (Index 0 maps to class -1)
                     position = -1
             
             # PnL Calculation
@@ -213,8 +216,15 @@ class Backtester:
             equity = [self.initial_capital]
             trades_count = 0
             wins = 0
+            cooldown_remaining = 0
             
             for i in range(len(preds)):
+                # Apply Cooldown Filter
+                if cooldown_remaining > 0:
+                    cooldown_remaining -= 1
+                    equity.append(equity[-1])
+                    continue
+                    
                 pred_class = preds[i]
                 conf = max_probs[i]
                 actual_ret = y_reg_test[i]
@@ -228,9 +238,10 @@ class Backtester:
                         is_news_day = abs(news_val) > 0 # Any sentiment is news
                 
                 position = 0
-                if conf >= thresh:
-                    if pred_class == 1: position = 1
-                    elif pred_class == 0: position = -1
+                # Strict Confidence and Probability Spread Filters
+                if conf >= thresh and abs(conf - 0.5) >= 0.1:
+                    if pred_class == 2: position = 1     # Bull (Index 2 maps to class 1)
+                    elif pred_class == 0: position = -1   # Bear (Index 0 maps to class -1)
                 
                 if position != 0:
                     trades_count += 1
@@ -238,6 +249,14 @@ class Backtester:
                     # 100% Allocation
                     equity.append(equity[-1] * (1 + net_ret))
                     if net_ret > 0: wins += 1
+                    
+                    # Apply Timeframe-Specific Cooldown
+                    if "1h" in suffix_clean.lower():
+                        cooldown_remaining = 3
+                    elif "4h" in suffix_clean.lower():
+                        cooldown_remaining = 2
+                    else:
+                        cooldown_remaining = 1
                     
                     # Split Stats (Only for 0.60 thresh as reference)
                     if abs(thresh - 0.60) < 0.01:
@@ -297,6 +316,8 @@ class Backtester:
         t_avg_ret = t_ret / t_t if t_t > 0 else 0
         print(f"{'Technical Only':<15} | {t_t:<8} | {t_wr:<10.1%} | {t_avg_ret:<10.2%}")
         print("(Note: 'News Days' = Days with significant News Sentiment != 0)")
+        
+        return results_summary
 
 if __name__ == "__main__":
     import argparse

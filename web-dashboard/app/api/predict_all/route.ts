@@ -58,7 +58,7 @@ export async function GET(request: Request) {
 
     console.log(`🚀 Executing: ${cmd}`);
 
-    return new Promise((resolve) => {
+    return new Promise<NextResponse>((resolve) => {
         exec(cmd, { cwd: path.resolve(process.cwd(), '..') }, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Exec Error: ${error}`);

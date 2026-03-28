@@ -15,7 +15,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.data.fetch_calendar import NewsScraper
+from src.data.news_scraper import NewsScraper
 
 def fetch_six_months():
     print("--- Fetching Future News (Next 6 Months) ---")

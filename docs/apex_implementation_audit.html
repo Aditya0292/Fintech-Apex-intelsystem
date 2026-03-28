@@ -1,0 +1,340 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary)}
+
+.section{margin-bottom:0;border-bottom:1px solid var(--color-border-tertiary)}
+.section-head{padding:12px 14px;background:var(--color-background-secondary);display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.section-head:hover{background:var(--color-background-tertiary)}
+.section-num{font-family:'Space Mono',monospace;font-size:9px;color:var(--color-text-tertiary);width:24px}
+.section-title{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;flex:1}
+.section-badge{font-family:'Space Mono',monospace;font-size:8px;padding:2px 7px;border-radius:2px}
+.badge-ok{background:rgba(0,208,132,.1);color:#00d084;border:0.5px solid rgba(0,208,132,.2)}
+.badge-warn{background:rgba(245,166,35,.1);color:#f5a623;border:0.5px solid rgba(245,166,35,.2)}
+.badge-fix{background:rgba(232,57,74,.1);color:#e8394a;border:0.5px solid rgba(232,57,74,.2)}
+.badge-add{background:rgba(59,143,255,.1);color:#3b8fff;border:0.5px solid rgba(59,143,255,.2)}
+.chevron{font-size:9px;color:var(--color-text-tertiary);transition:transform .2s;margin-left:auto}
+.chevron.open{transform:rotate(180deg)}
+
+.section-body{padding:14px;display:none;flex-direction:column;gap:8px}
+.section-body.open{display:flex}
+
+.audit-row{display:flex;gap:10px;align-items:flex-start;padding:6px 10px;border-radius:4px;background:var(--color-background-secondary)}
+.audit-icon{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0;margin-top:1px}
+.icon-ok{background:rgba(0,208,132,.15);color:#00d084}
+.icon-warn{background:rgba(245,166,35,.15);color:#f5a623}
+.icon-fix{background:rgba(232,57,74,.15);color:#e8394a}
+.icon-add{background:rgba(59,143,255,.15);color:#3b8fff}
+.audit-content{flex:1}
+.audit-title{font-family:'Space Mono',monospace;font-size:10px;color:var(--color-text-primary);margin-bottom:2px}
+.audit-desc{font-size:11px;color:var(--color-text-secondary);line-height:1.5}
+.audit-fix{font-family:'Space Mono',monospace;font-size:9px;color:#3b8fff;margin-top:4px;background:var(--color-background-tertiary);padding:4px 7px;border-radius:3px;display:block}
+
+.priority-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:4px}
+.p-card{border-radius:4px;padding:10px 12px;border:0.5px solid var(--color-border-tertiary)}
+.p-card-title{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.08em;margin-bottom:6px}
+.p-item{font-size:10px;color:var(--color-text-secondary);padding:2px 0;display:flex;gap:6px;align-items:center}
+.p-item::before{content:'';width:4px;height:4px;border-radius:50%;flex-shrink:0}
+
+.summary-bar{display:flex;gap:12px;padding:10px 14px;background:var(--color-background-secondary);border-top:1px solid var(--color-border-tertiary)}
+.sum-item{display:flex;align-items:center;gap:6px}
+.sum-num{font-family:'Space Mono',monospace;font-size:18px;font-weight:700}
+.sum-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--color-text-tertiary);letter-spacing:.08em}
+</style>
+
+<!-- Summary bar -->
+<div class="summary-bar">
+  <div class="sum-item"><div class="sum-num" style="color:#00d084">12</div><div class="sum-label">CORRECT<br>AS-IS</div></div>
+  <div class="sum-item"><div class="sum-num" style="color:#f5a623">7</div><div class="sum-label">NEEDS<br>ATTENTION</div></div>
+  <div class="sum-item"><div class="sum-num" style="color:#e8394a">4</div><div class="sum-label">CRITICAL<br>GAPS</div></div>
+  <div class="sum-item"><div class="sum-num" style="color:#3b8fff">6</div><div class="sum-label">MISSING<br>FILES</div></div>
+  <div style="margin-left:auto;display:flex;align-items:center"><span style="font-family:'Space Mono',monospace;font-size:10px;color:#f5a623">PLAN IS 70% COMPLETE — DO NOT BUILD AS-IS</span></div>
+</div>
+
+<!-- SECTION 1 -->
+<div class="section">
+  <div class="section-head" onclick="tog(this)">
+    <span class="section-num">01</span>
+    <span class="section-title">CSS & CONFIGURATION AUDIT</span>
+    <span class="section-badge badge-warn">2 WARNINGS</span>
+    <span class="chevron open">▼</span>
+  </div>
+  <div class="section-body open">
+    <div class="audit-row">
+      <div class="audit-icon icon-ok">✓</div>
+      <div class="audit-content">
+        <div class="audit-title">globals.css — color variables</div>
+        <div class="audit-desc">Correct. 9-variable bg hierarchy + semantic colors. This is the foundation — do it first before touching any component.</div>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-warn">!</div>
+      <div class="audit-content">
+        <div class="audit-title">globals.css — missing CSS reset rules</div>
+        <div class="audit-desc">Plan mentions colors and fonts but omits critical terminal resets: overflow:hidden on html/body, height:100vh on html/body, user-select:none on non-input elements. Without these the terminal will scroll and feel like a webpage.</div>
+        <span class="audit-fix">ADD: html,body { height:100vh; overflow:hidden; } to globals.css</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-warn">!</div>
+      <div class="audit-content">
+        <div class="audit-title">tailwind.config.ts — CSS variable mapping</div>
+        <div class="audit-desc">The plan says "map tailwind colors to CSS variables" but doesn't specify HOW. You need extend.colors to reference var(--gold) etc. Otherwise Tailwind classes like text-gold won't resolve to your custom colors.</div>
+        <span class="audit-fix">ADD: colors: { gold: 'var(--gold)', green: 'var(--green)', ... } under theme.extend</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-ok">✓</div>
+      <div class="audit-content">
+        <div class="audit-title">layout.tsx — Google Fonts import</div>
+        <div class="audit-desc">Correct approach. Import Space_Mono and DM_Sans from next/font/google. Assign as CSS variables --font-mono and --font-sans. Apply both to html tag.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2 -->
+<div class="section">
+  <div class="section-head" onclick="tog(this)">
+    <span class="section-num">02</span>
+    <span class="section-title">CORE LAYOUT COMPONENTS AUDIT</span>
+    <span class="section-badge badge-fix">1 CRITICAL</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="audit-row">
+      <div class="audit-icon icon-ok">✓</div>
+      <div class="audit-content">
+        <div class="audit-title">Topbar.tsx — structure correct</div>
+        <div class="audit-desc">32px height, ticker, status dot, clock. All specified correctly. The CSS @keyframes ticker approach is right — no JS library needed.</div>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-fix">✗</div>
+      <div class="audit-content">
+        <div class="audit-title">CRITICAL: No TerminalShell.tsx / root layout component</div>
+        <div class="audit-desc">The plan lists 4 zone components (Topbar, LeftNav, RightPanel, BottomStatus) but has NO wrapper that assembles them into the 3-column CSS grid. Who renders the grid? page.tsx can't do it cleanly — you need a dedicated shell component.</div>
+        <span class="audit-fix">ADD: TerminalShell.tsx — renders the grid-template-columns: 200px 1fr 240px layout and slots the 4 zones</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-warn">!</div>
+      <div class="audit-content">
+        <div class="audit-title">LeftNav.tsx — active state management missing</div>
+        <div class="audit-desc">The plan doesn't specify how the active nav item is tracked. If using Next.js App Router, use usePathname() hook. If single-page terminal, use local useState. This needs to be decided before building.</div>
+        <span class="audit-fix">DECIDE: usePathname() for multi-page OR useState activeTab for single-page terminal</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-warn">!</div>
+      <div class="audit-content">
+        <div class="audit-title">RightPanel.tsx — scroll behavior not specified</div>
+        <div class="audit-desc">Right panel is the only zone that scrolls. Plan mentions it has 4 sections but doesn't specify overflow-y:auto with a scrollbar styled to terminal aesthetic (thin, dark, no track).</div>
+        <span class="audit-fix">ADD: overflow-y:auto; scrollbar-width:thin; scrollbar-color: var(--border) transparent;</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-ok">✓</div>
+      <div class="audit-content">
+        <div class="audit-title">BottomStatus.tsx — concept correct</div>
+        <div class="audit-desc">22px, fixed to bottom of main content. Model version, accuracy, Kelly, session. All correct. Note: this lives INSIDE MainContent, not at the page level.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3 -->
+<div class="section">
+  <div class="section-head" onclick="tog(this)">
+    <span class="section-num">03</span>
+    <span class="section-title">INTELLIGENCE COMPONENTS AUDIT</span>
+    <span class="section-badge badge-fix">2 CRITICAL</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="audit-row">
+      <div class="audit-icon icon-fix">✗</div>
+      <div class="audit-content">
+        <div class="audit-title">CRITICAL: SignalTable.tsx is missing from the plan</div>
+        <div class="audit-desc">The Opportunity Runway table (most important intelligence component) is completely absent from the plan. It's not the same as MetricCard. It has 6 columns, confidence bars, colored BUY/SELL/WAIT cells, hover states. This is a standalone component.</div>
+        <span class="audit-fix">ADD: SignalTable.tsx to the [NEW] components list</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-fix">✗</div>
+      <div class="audit-content">
+        <div class="audit-title">CRITICAL: SMCPanel.tsx is missing from the plan</div>
+        <div class="audit-desc">The SMC Structure panel (OB zone, FVG zone, BOS, CHOCH, liquidity sweep rows) is a distinct component. Not in the plan at all. Without it the right column is empty.</div>
+        <span class="audit-fix">ADD: SMCPanel.tsx — renders SMC structure rows with active/warn/inactive color states</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-fix">✗</div>
+      <div class="audit-content">
+        <div class="audit-title">CRITICAL: NewsItem.tsx is missing from the plan</div>
+        <div class="audit-desc">The news feed with decay scores is APEX's most unique visual element. It's not in the component list. Each NewsItem has timestamp, headline, impact badge, and decay score in gold. This is what separates APEX from every other dashboard.</div>
+        <span class="audit-fix">ADD: NewsItem.tsx — renders news with decay: X.XX score in --gold Space Mono</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-ok">✓</div>
+      <div class="audit-content">
+        <div class="audit-title">MetricCard.tsx — correct</div>
+        <div class="audit-desc">Reusable with colored top accent bar. Space Mono values. Props: label, value, badge, badgeColor, accentColor. This is the right abstraction.</div>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-warn">!</div>
+      <div class="audit-content">
+        <div class="audit-title">ChartSVG.tsx — props interface not defined</div>
+        <div class="audit-desc">Plan says "hand-coded SVG with OB/FVG annotations" but doesn't define what data shape it accepts. You'll build it twice if you don't spec the props first.</div>
+        <span class="audit-fix">DEFINE: ChartSVG props = { prices: number[], obZones: {y1,y2}[], fvgZones: {y1,y2}[], height: number }</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4 -->
+<div class="section">
+  <div class="section-head" onclick="tog(this)">
+    <span class="section-num">04</span>
+    <span class="section-title">DATA LAYER — COMPLETELY MISSING</span>
+    <span class="section-badge badge-fix">CRITICAL GAP</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="audit-row">
+      <div class="audit-icon icon-fix">✗</div>
+      <div class="audit-content">
+        <div class="audit-title">No data types / interfaces defined</div>
+        <div class="audit-desc">The plan mentions "live data from /api/predict_all populates components" but never defines the TypeScript interfaces. Without types, you'll have prop drilling hell and runtime errors.</div>
+        <span class="audit-fix">ADD: types/apex.ts — SignalData, AssetTick, NewsEvent, RiskParams, SMCZone interfaces</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-fix">✗</div>
+      <div class="audit-content">
+        <div class="audit-title">No data fetching hook defined</div>
+        <div class="audit-desc">Who polls /api/predict_all? Who polls /api/ticks? The plan has no hooks/useApexData.ts. Without this, each component fetches independently — expensive and inconsistent.</div>
+        <span class="audit-fix">ADD: hooks/useApexData.ts — centralised polling with 3s (signals) + 2s (ticks) + 60s (news) intervals</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-fix">✗</div>
+      <div class="audit-content">
+        <div class="audit-title">Decay score calculation — client or server?</div>
+        <div class="audit-desc">Plan doesn't specify where decay is computed. If server: backend sends decay score in JSON. If client: frontend recalculates every 60s using event timestamps. Client-side is correct — it stays fresh without re-fetching.</div>
+        <span class="audit-fix">DECIDE + ADD: utils/decay.ts — export const calcDecay = (eventTime: Date) => Math.exp(-LN2/90 * minutesSince(eventTime))</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5 -->
+<div class="section">
+  <div class="section-head" onclick="tog(this)">
+    <span class="section-num">05</span>
+    <span class="section-title">VERIFICATION PLAN AUDIT</span>
+    <span class="section-badge badge-warn">INCOMPLETE</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="audit-row">
+      <div class="audit-icon icon-ok">✓</div>
+      <div class="audit-content">
+        <div class="audit-title">Visual audit against spec — correct</div>
+        <div class="audit-desc">Comparing colors, fonts, layout against the master spec is the right first check.</div>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-ok">✓</div>
+      <div class="audit-content">
+        <div class="audit-title">Animation check — correct</div>
+        <div class="audit-desc">Ticker scroll + pause on hover. Status dot pulse. These are the two animations that must work.</div>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-warn">!</div>
+      <div class="audit-content">
+        <div class="audit-title">Responsive check is WRONG framing</div>
+        <div class="audit-desc">Terminals are NOT responsive. The plan says "various screen sizes" — that is a consumer product mindset. APEX has a minimum width of 1280px. Below that, show a "use desktop" message. Fixed-width panels should NEVER collapse.</div>
+        <span class="audit-fix">REPLACE: "responsive check" → "minimum viewport check: 1280px hard minimum, no collapsing panels"</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-add">+</div>
+      <div class="audit-content">
+        <div class="audit-title">MISSING: Price flash verification</div>
+        <div class="audit-desc">When a tick updates, the price cell should flash green (up) or red (down) for 400ms. This is not in the verification plan. It's the most visible sign of "live data working."</div>
+        <span class="audit-fix">ADD to verification: "Trigger manual price update. Verify green/red cell flash for 400ms."</span>
+      </div>
+    </div>
+    <div class="audit-row">
+      <div class="audit-icon icon-add">+</div>
+      <div class="audit-content">
+        <div class="audit-title">MISSING: Decay score live update verification</div>
+        <div class="audit-desc">The decay scores (0.82, 0.41, 0.09) must decrease over time without re-fetching. Verify by waiting 2 minutes and checking they've decreased. This is the uniqueness check.</div>
+        <span class="audit-fix">ADD to verification: "Wait 2 min. Verify decay scores have decreased from initial values."</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6 — BUILD ORDER -->
+<div class="section" style="border-bottom:none">
+  <div class="section-head" onclick="tog(this)">
+    <span class="section-num">06</span>
+    <span class="section-title">CORRECT BUILD ORDER</span>
+    <span class="section-badge badge-add">READ THIS FIRST</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="priority-grid">
+      <div class="p-card" style="border-color:rgba(232,57,74,.3)">
+        <div class="p-card-title" style="color:#e8394a">PHASE 1 — FOUNDATION</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#e8394a;flex-shrink:0;display:inline-block"></span>globals.css + resets</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#e8394a;flex-shrink:0;display:inline-block"></span>tailwind.config.ts</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#e8394a;flex-shrink:0;display:inline-block"></span>types/apex.ts</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#e8394a;flex-shrink:0;display:inline-block"></span>utils/decay.ts</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#e8394a;flex-shrink:0;display:inline-block"></span>layout.tsx (fonts)</div>
+      </div>
+      <div class="p-card" style="border-color:rgba(245,166,35,.3)">
+        <div class="p-card-title" style="color:#f5a623">PHASE 2 — SHELL</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#f5a623;flex-shrink:0;display:inline-block"></span>TerminalShell.tsx</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#f5a623;flex-shrink:0;display:inline-block"></span>Topbar.tsx (static)</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#f5a623;flex-shrink:0;display:inline-block"></span>LeftNav.tsx (static)</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#f5a623;flex-shrink:0;display:inline-block"></span>RightPanel.tsx (static)</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#f5a623;flex-shrink:0;display:inline-block"></span>BottomStatus.tsx</div>
+      </div>
+      <div class="p-card" style="border-color:rgba(0,208,132,.3)">
+        <div class="p-card-title" style="color:#00d084">PHASE 3 — INTELLIGENCE</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#00d084;flex-shrink:0;display:inline-block"></span>hooks/useApexData.ts</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#00d084;flex-shrink:0;display:inline-block"></span>MetricCard.tsx</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#00d084;flex-shrink:0;display:inline-block"></span>ChartSVG.tsx</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#00d084;flex-shrink:0;display:inline-block"></span>SignalTable.tsx</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#00d084;flex-shrink:0;display:inline-block"></span>SMCPanel.tsx</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#00d084;flex-shrink:0;display:inline-block"></span>NewsItem.tsx</div>
+        <div class="p-item" style="color:var(--color-text-secondary)"><span style="width:4px;height:4px;border-radius:50%;background:#00d084;flex-shrink:0;display:inline-block"></span>page.tsx rewrite</div>
+      </div>
+    </div>
+    <div style="padding:10px 12px;background:var(--color-background-secondary);border-radius:4px;border:0.5px solid rgba(245,166,35,.3);margin-top:2px">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:#f5a623;margin-bottom:4px">RULE: Never start Phase 2 until Phase 1 renders a blank black terminal correctly.</div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:#f5a623">RULE: Never start Phase 3 until Phase 2 shell renders with correct zones and zero data.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function tog(h){
+  const b=h.nextElementSibling;
+  const c=h.querySelector('.chevron');
+  const open=b.classList.contains('open');
+  b.classList.toggle('open',!open);
+  b.style.display=open?'none':'flex';
+  c.classList.toggle('open',!open);
+}
+document.querySelectorAll('.section-body').forEach(b=>{
+  if(!b.classList.contains('open'))b.style.display='none';
+});
+</script>

@@ -1,0 +1,37 @@
+# Timeframe Specific Overrides for Feature Engineering
+# These values override the defaults in config.yaml based on the timeframe being processed.
+
+daily: # 1d
+  window_size: 20       # Shorter window (approx 1 month) to capture recent context
+  min_periods: 50       # Minimal history needed
+  swing_length: 3       # Fast swing detection (react to 3-day highs/lows)
+  internal_length: 2
+  movement_threshold_mult: 1.0 # Multiplier for ATR threshold
+
+4h: # 4 Hour
+  window_size: 50       # Standard (default)
+  min_periods: 200
+  swing_length: 10      # Standard
+  internal_length: 3
+  movement_threshold_mult: 1.0
+
+1h: # 1 Hour
+  window_size: 50       # Standard
+  min_periods: 200
+  swing_length: 10
+  internal_length: 3
+  movement_threshold_mult: 1.0
+
+15m: # 15 Minute
+  window_size: 100      # Longer window to smooth out noise
+  min_periods: 400
+  swing_length: 20      # Stricter swing definitions to ignore micro-choppiness
+  internal_length: 5
+  movement_threshold_mult: 1.5 # Expect 1.5x ATR move to be considered significant (filter noise)
+
+5m: # 5 Minute (Scalping)
+  window_size: 200
+  min_periods: 500
+  swing_length: 30
+  internal_length: 8
+  movement_threshold_mult: 2.0

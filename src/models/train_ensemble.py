@@ -34,7 +34,7 @@ from sklearn.metrics import accuracy_score, precision_score, classification_repo
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.linear_model import LogisticRegression
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 import xgboost as xgb
 import lightgbm as lgb
@@ -56,7 +56,7 @@ class Config:
     EPOCHS = 30 # Reduced for speed, increase for prod
     BATCH_SIZE = 32
     LEARNING_RATE = 0.001
-    CLASSES = [0, 1, 2] # Bear, Bull, Neutral
+    CLASSES = [-1, 0, 1] # Bear, Neutral, Bull
     
     # Paths
     X_PATH = "data/X.npy"
@@ -98,6 +98,11 @@ def train_ensemble(suffix=""):
     
     print(f"Data shape: {X.shape}, Labels: {y.shape}")
     
+    # Label Encoding for XGBoost/TF compatibility
+    le = LabelEncoder()
+    y = le.fit_transform(y)
+    print(f"Encoded Labels classes: {le.classes_} -> [0, 1, 2]")
+    
     # Prepare flatten data for Tree models
     X_flat = X.reshape(X.shape[0], -1) 
     # Or better: Extract statistical features from sequence (Mean, Max, Min, Last)
@@ -113,6 +118,22 @@ def train_ensemble(suffix=""):
     meta_X = np.zeros((len(X), 3 * 4)) # 3 classes * 4 models
     meta_y = y
     
+    # Load Asset Specific Params
+    from src.utils.config_loader import config as global_config
+    assets_config = global_config.get('assets', {})
+    
+    # Identify which asset this suffix belongs to
+    this_asset = None
+    for asset, details in assets_config.items():
+        if details.get('model_suffix', '').lower() in suffix_clean.lower():
+            this_asset = asset
+            break
+            
+    asset_params = {}
+    if this_asset:
+        asset_params = assets_config[this_asset].get('model_params', {})
+        print(f"  Found asset-specific params for {this_asset}: {list(asset_params.keys())}")
+
     # Walk-Forward Validation
     tscv = TimeSeriesSplit(n_splits=config.N_SPLITS)
     
@@ -139,13 +160,13 @@ def train_ensemble(suffix=""):
         
         # --- 1. XGBoost ---
         print("  Training XGBoost...")
-        model_xgb = ModelFactory.get_xgboost(X_train_tree.shape[1])
+        model_xgb = ModelFactory.get_xgboost(X_train_tree.shape[1], params=asset_params.get('xgb'))
         model_xgb.fit(X_train_tree, y_train, eval_set=[(X_test_tree, y_test)], verbose=False)
         pred_xgb = model_xgb.predict_proba(X_test_tree)
         
         # --- 2. LightGBM ---
         print("  Training LightGBM...")
-        model_lgb = ModelFactory.get_lightgbm(X_train_tree.shape[1])
+        model_lgb = ModelFactory.get_lightgbm(X_train_tree.shape[1], params=asset_params.get('lgbm'))
         model_lgb.fit(X_train_tree, y_train, eval_set=[(X_test_tree, y_test)], eval_metric='logloss')
         pred_lgb = model_lgb.predict_proba(X_test_tree)
         
@@ -214,7 +235,9 @@ def train_ensemble(suffix=""):
     meta_probs = calibrated_meta.predict_proba(meta_X_train)
     meta_preds = np.argmax(meta_probs, axis=1)
     
-    print(classification_report(meta_y_train, meta_preds, target_names=['Bear', 'Bull', 'Neutral']))
+    # Use encoded labels for classification report
+    target_names = [f"Class {c}" for c in le.classes_]
+    print(classification_report(meta_y_train, meta_preds, target_names=target_names))
     
     # Confusion Matrix (Skip plot for batch mode)
     # cm = confusion_matrix(meta_y_train, meta_preds)

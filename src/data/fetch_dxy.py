@@ -123,7 +123,9 @@ def align_dxy_with_gold(gold_csv="data/XAUUSD_history.csv"):
     # Fill remaining (start of data) with backfill or first valid
     merged[cols_to_fill] = merged[cols_to_fill].fillna(method='bfill')
     
-    return merged
+    # CRITICAL FIX: Return ONLY DXY columns and Time. 
+    # Otherwise pipeline renames 'close' (Gold) to 'dxy_close' causing 100% correlation.
+    return merged[['time'] + cols_to_fill]
 
 if __name__ == "__main__":
     fetch_dxy()

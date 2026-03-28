@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "node node_modules/next/dist/bin/next dev",
+    "dev:safe": "node node_modules/next/dist/bin/next dev --webpack",
     "build": "node node_modules/next/dist/bin/next build",
     "start": "node node_modules/next/dist/bin/next start",
     "lint": "node node_modules/next/dist/bin/next lint"
@@ -21,12 +22,14 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.26",
+    "lightweight-charts": "^5.1.0",
     "lucide-react": "^0.561.0",
     "next": "^16.0.10",
     "postcss": "^8.5.6",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "recharts": "^3.5.1",
+    "satellite.js": "^7.0.0",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.3"

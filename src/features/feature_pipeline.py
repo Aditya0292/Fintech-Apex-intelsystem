@@ -69,6 +69,44 @@ class Config:
         
         self.OUTPUT_DIR.mkdir(exist_ok=True)
 
+        # Load Timeframe Overrides
+        self.tf_overrides = {}
+        tf_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'timeframes.yaml')
+        if os.path.exists(tf_path):
+             import yaml
+             with open(tf_path, 'r') as f:
+                 self.tf_overrides = yaml.safe_load(f)
+             logger.info(f"Loaded Timeframe Overrides from {tf_path}")
+
+    def apply_overrides(self, timeframe):
+        """Apply timeframe specific overrides"""
+        if not timeframe: return
+        
+        # Normalize timeframe key (1d, 4h, 1h, 15m)
+        tf_key = timeframe.lower()
+        if tf_key not in self.tf_overrides:
+            # Try to map common aliases
+            aliases = {'daily': 'daily'}
+            tf_key = aliases.get(tf_key, tf_key)
+            
+        settings = self.tf_overrides.get(tf_key)
+        if not settings:
+            # Fallback for keys like 'daily' mapped to 'daily' in yaml if needed
+            # In my yaml I used keys: daily, 4h, 1h, 15m
+            return
+
+        logger.info(f"Applying Config Overrides for {tf_key}: {settings}")
+        
+        if 'window_size' in settings: self.WINDOW = settings['window_size']
+        if 'min_periods' in settings: self.MIN_PERIODS = settings['min_periods']
+        if 'swing_length' in settings: self.SWING_LENGTH = settings['swing_length']
+        if 'internal_length' in settings: self.INTERNAL_LENGTH = settings['internal_length']
+        if 'movement_threshold_mult' in settings:
+             # Just store modifier, applied in target creation
+             self.MOVEMENT_F = settings['movement_threshold_mult']
+        else:
+             self.MOVEMENT_F = 1.0
+
 config = Config()
 
 # ============================================================================
@@ -447,8 +485,13 @@ class ConfluenceDetector:
 class FeatureEngineering:
     """Main feature engineering pipeline"""
     
-    def __init__(self, symbol: str = "XAUUSD"):
+    def __init__(self, symbol: str = "XAUUSD", timeframe: str = ""):
         self.symbol = symbol
+        
+        # Apply Config Overrides
+        if timeframe:
+            config.apply_overrides(timeframe)
+            
         self.tech = TechnicalIndicators()
         self.structure = MarketStructure()
         self.ob = OrderBlocks()
@@ -512,7 +555,7 @@ class FeatureEngineering:
             # Fill defaults
             cols = ['dxy_close', 'dxy_open', 'dxy_rsi', 'dxy_ema_50', 'dxy_trend', 'gold_dxy_corr', 'inverse_confluence']
             for c in cols: df[c] = 0.0
-
+ 
         # --- CSM INTEGRATION ---
         try:
             assets_conf = global_config.get('assets', {})
@@ -548,7 +591,7 @@ class FeatureEngineering:
         for col in ['csm_base', 'csm_quote', 'csm_diff']:
             if col not in df.columns: df[col] = 0.0
             df[col] = df[col].fillna(0.0)
-
+ 
         # --- NEWS INTEGRATION V2 ---
         try:
             news_df = self.news_manager.aggregate_impact_for_symbol(df['time'], self.symbol)
@@ -565,7 +608,7 @@ class FeatureEngineering:
             else:
                 df['news_sentiment'] = 0.0
                 df['news_impact_score'] = 0.0
-
+ 
             # Specific impacts
             if len(currencies) >= 1:
                 base = currencies[0]
@@ -587,29 +630,70 @@ class FeatureEngineering:
         for c in v2_cols:
             if c not in df.columns: df[c] = 0.0
             df[c] = df[c].fillna(0.0)
-
+ 
         return df
-
+ 
+    def clean_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Remove 'flat' candles where High == Low or Volume is 0 (if valid volume exists).
+        Also removes extremely small movements that are effectively noise.
+        """
+        initial_len = len(df)
+        
+        # 1. Flat Candles (High == Low)
+        mask_flat = df['high'] == df['low']
+        
+        # 2. Zero Volume (if volume column exists and has non-zero values)
+        mask_vol = pd.Series(False, index=df.index)
+        if 'volume' in df.columns and df['volume'].sum() > 0:
+            mask_vol = df['volume'] == 0
+            
+        # 3. Micro Movements (Close vs Open < 1 pip/basis point)
+        # 1 bp = 0.0001
+        mask_noise = (df['close'] - df['open']).abs() < 0.00005 
+        
+        # Combine
+        mask_drop = mask_flat | mask_vol | mask_noise
+        
+        df_clean = df[~mask_drop].copy()
+        dropped = initial_len - len(df_clean)
+        if dropped > 0:
+            logger.info(f"Cleaned Data: Dropped {dropped} rows ({dropped/initial_len:.1%}) due to flat/noise/zero-vol.")
+            
+        return df_clean
+ 
     def create_targets(self, df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Create strict 3-class targets based on movement threshold.
+        Create 3-class targets based on QUANTILE thresholds for robust distribution.
+        This ensures a stable 40-20-40 split across all assets and timeframes.
+        Returns:
+            targets: array of [0, 1, 2] (0=Bearish, 1=Bullish, 2=Neutral)
+            returns: array of percentage returns
         """
         next_open = df['open'].shift(-1)
         next_close = df['close'].shift(-1)
         
+        # Calculate percentage return
         ret = (next_close - next_open) / next_open
         ret = ret.fillna(0)
         
-        threshold = config.MOVEMENT_THRESHOLD
+        # Quantile-based thresholds for stable distribution
+        # 40% Bullish (1), 40% Bearish (0), 20% Neutral (2)
+        upper_q = ret.quantile(0.60)
+        lower_q = ret.quantile(0.40)
+        
+        # Log thresholds for debugging
+        logger.info(f"Target Thresholds [{self.symbol}]: Upper={upper_q:.6f}, Lower={lower_q:.6f}")
         
         targets = np.zeros(len(df), dtype=int)
-        targets[:] = 2 # Default Neutral
+        targets[:] = 0 # Default Neutral
         
-        targets[ret > threshold] = 1
-        targets[ret < -threshold] = 0
+        # Vectorized comparison
+        targets[ret > upper_q] = 1  # Bullish
+        targets[ret < lower_q] = -1 # Bearish
         
         return targets, ret.values
-
+ 
     def build_features(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         logger.info("Building features...")
         if isinstance(df, pd.DataFrame):
@@ -620,13 +704,22 @@ class FeatureEngineering:
         # Pre-normalize Main DF Time
         df['time'] = normalize_ts(df['time'])
         
+        # 0. Volatility-Normalized Features (NEW)
+        # Calculate ATR early for normalization
+        df['atr_norm'] = self.tech.atr(df, 14)
+        
+        # Normalized returns and candle relative sizes
+        df['norm_return'] = normalize_to_atr(df['close'].pct_change(), df['atr_norm'])
+        df['norm_high_low'] = normalize_to_atr(df['high'] - df['low'], df['atr_norm'])
+        df['norm_body'] = normalize_to_atr(df['close'] - df['open'], df['atr_norm'])
+        
         # 1. Classical
-        df['atr'] = self.tech.atr(df)
+        df['atr'] = df['atr_norm'] # Reuse
         df['rsi'] = self.tech.rsi(df['close'])
         df['ema50'] = self.tech.ema(df['close'], 50)
         df['macd'], _, _ = self.tech.macd(df['close'])
         df['adx'] = self.tech.adx(df)
-
+ 
         # 2. Market Structure (SMC)
         swing_high, swing_low = self.structure.detect_swing_points(df, config.SWING_LENGTH)
         df = self.structure.label_structure(df, swing_high, swing_low)
@@ -636,7 +729,7 @@ class FeatureEngineering:
         df = self.ob.detect_order_blocks(df)
         df = self.fvg.detect_fvg(df)
         df = self.ob.detect_liquidity_sweeps(df)
-
+ 
         # SMC Densities
         window_density = 50
         df['fvg_density'] = (df['fvg_bullish'] + df['fvg_bearish']).rolling(window_density).sum()
@@ -660,6 +753,20 @@ class FeatureEngineering:
         df['day_of_week'] = df['time'].dt.dayofweek
         df['month'] = df['time'].dt.month
         
+        # 9. Session Features (New: Strengthening Forex)
+        df['hour'] = df['time'].dt.hour
+        # London Session: 07:00 - 16:00 UTC
+        df['is_london_session'] = ((df['hour'] >= 7) & (df['hour'] <= 16)).astype(int)
+        # New York Session: 12:00 - 21:00 UTC
+        df['is_new_york_session'] = ((df['hour'] >= 12) & (df['hour'] <= 21)).astype(int)
+        # Asian Session: 00:00 - 09:00 UTC
+        df['is_tokyo_session'] = ((df['hour'] >= 0) & (df['hour'] <= 9)).astype(int)
+        
+        # Session Killzones (High Volatility Windows)
+        df['london_open'] = ((df['hour'] >= 7) & (df['hour'] <= 9)).astype(int)
+        df['new_york_open'] = ((df['hour'] >= 12) & (df['hour'] <= 14)).astype(int)
+        df['london_close'] = ((df['hour'] >= 15) & (df['hour'] <= 17)).astype(int)
+        
         # Fill NaNs globally
         df = df.fillna(method='ffill').fillna(0)
         
@@ -668,23 +775,39 @@ class FeatureEngineering:
         
         logger.info(f"Features built: {features_df.shape}")
         return df, features_df
-
+ 
 # ============================================================================
 # MAIN PIPELINE
 # ============================================================================
-
+ 
 def run_pipeline(data_path="data/XAUUSD_history.csv", suffix="", symbol="XAUUSD"):
     print(f"Loading data from {data_path}...")
     if not os.path.exists(data_path):
         print(f"Error: {data_path} not found.")
         return
-
+ 
+    # Parse Timeframe from suffix (e.g., _XAUUSD_15m -> 15m)
+    # Suffix format usually: _{Asset}_{Timeframe} or _{Timeframe}
+    timeframe = ""
+    if suffix:
+        parts = suffix.split('_')
+        # Check last part for known timeframes
+        if parts[-1] in ['1d', '4h', '1h', '30m', '15m', '5m']:
+            timeframe = parts[-1]
+    
+    print(f"Detected Timeframe: '{timeframe}' (Applying overrides if any)")
+    config.apply_overrides(timeframe)
+ 
     # Load your CSV
     df = pd.read_csv(data_path)
     
     # Process
     try:
-        fe = FeatureEngineering(symbol=symbol)
+        fe = FeatureEngineering(symbol=symbol, timeframe=timeframe)
+        
+        # Data Cleaning (New Step Phase 8)
+        df = fe.clean_data(df)
+        
         df_enhanced, features = fe.build_features(df)
         
         # Targets
@@ -703,7 +826,14 @@ def run_pipeline(data_path="data/XAUUSD_history.csv", suffix="", symbol="XAUUSD"
         X_seq = []
         y_seq_class = []
         
-        win = config.WINDOW
+        win = config.WINDOW # This is now Dynamic based on timeframe!
+        print(f"Using Window Size: {win}")
+        
+        # Guard check if data is smaller than window
+        if len(X_scaled) < win + 1:
+            print(f"Error: Data length {len(X_scaled)} is smaller than window {win}.")
+            return
+            
         for i in range(win, len(X_scaled) - 1): 
             X_seq.append(X_scaled[i-win:i])
             y_seq_class.append(y_class[i])
@@ -720,8 +850,10 @@ def run_pipeline(data_path="data/XAUUSD_history.csv", suffix="", symbol="XAUUSD"
         print(f"Saving artifacts to data/X{suffix}.npy ...")
         np.save(f"data/X{suffix}.npy", X_seq)
         np.save(f"data/y_class{suffix}.npy", y_seq_class)
-        y_reg_aligned = y_reg[win:-1]
-        np.save(f"data/y_reg{suffix}.npy", y_reg_aligned)
+        
+        if len(y_reg) > win:
+             y_reg_aligned = y_reg[win:-1]
+             np.save(f"data/y_reg{suffix}.npy", y_reg_aligned)
         
         df_enhanced.to_csv(f"data/features_enhanced{suffix}.csv", index=False)
         
@@ -733,13 +865,33 @@ def run_pipeline(data_path="data/XAUUSD_history.csv", suffix="", symbol="XAUUSD"
         print(f"Pipeline failed: {e}")
         import traceback
         traceback.print_exc()
-
+ 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=str, default="data/XAUUSD_history.csv")
     parser.add_argument("--suffix", type=str, default="")
     parser.add_argument("--symbol", type=str, default="XAUUSD")
+    parser.add_argument("--all", action="store_true", help="Run for all assets/timeframes")
     args = parser.parse_args()
     
-    run_pipeline(args.data, args.suffix, args.symbol)
+    if args.all:
+        from src.utils.config_loader import config as global_config
+        assets_conf = global_config.get('assets', {})
+        for asset, details in assets_conf.items():
+            for tf in details.get('timeframes', []):
+                # Map timeframe codes to suffix codes used in datasets
+                tf_map = {'daily': '1d', '4h': '4h', '1h': '1h', '15m': '15m'}
+                tf_code = tf_map.get(tf, tf)
+                
+                data_path = f"data/{asset}_history.csv"
+                if asset == "XAUUSD": data_path = "data/XAUUSD_history.csv"
+                
+                if not os.path.exists(data_path):
+                    print(f"Skipping {asset} {tf}: {data_path} not found.")
+                    continue
+                
+                print(f"\n>>> RUNNING PIPELINE: {asset} {tf}")
+                run_pipeline(data_path, f"_{asset}_{tf_code}", asset)
+    else:
+        run_pipeline(args.data, args.suffix, args.symbol)

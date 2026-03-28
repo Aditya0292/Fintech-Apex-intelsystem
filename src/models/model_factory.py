@@ -9,33 +9,41 @@ from tensorflow.keras.optimizers import Adam
 
 class ModelFactory:
     @staticmethod
-    def get_xgboost(input_dim):
+    def get_xgboost(input_dim, params: dict = None):
         """Returns complex XGBoost Classifier"""
-        # Note: input_dim not strictly used for init, but kept for signature consistency
-        return xgb.XGBClassifier(
-            n_estimators=200, 
-            learning_rate=0.03, 
-            max_depth=6, 
-            subsample=0.8, 
-            colsample_bytree=0.8,
-            objective='multi:softprob',
-            num_class=3,
-            n_jobs=-1,
-            random_state=42
-        )
+        # Default Params
+        base_params = {
+            "n_estimators": 200, 
+            "learning_rate": 0.03, 
+            "max_depth": 6, 
+            "subsample": 0.8, 
+            "colsample_bytree": 0.8,
+            "objective": 'multi:softprob',
+            "num_class": 3,
+            "n_jobs": -1,
+            "random_state": 42
+        }
+        if params:
+            base_params.update(params)
+            
+        return xgb.XGBClassifier(**base_params)
     
     @staticmethod
-    def get_lightgbm(input_dim):
+    def get_lightgbm(input_dim, params: dict = None):
         """Returns complex LightGBM Classifier"""
-        return lgb.LGBMClassifier(
-            n_estimators=200,
-            learning_rate=0.03,
-            num_leaves=31,
-            objective='multiclass',
-            num_class=3,
-            random_state=42,
-            n_jobs=-1
-        )
+        base_params = {
+            "n_estimators": 200,
+            "learning_rate": 0.03,
+            "num_leaves": 31,
+            "objective": 'multiclass',
+            "num_class": 3,
+            "random_state": 42,
+            "n_jobs": -1
+        }
+        if params:
+            base_params.update(params)
+            
+        return lgb.LGBMClassifier(**base_params)
         
     @staticmethod
     def get_bilstm_attention(input_shape):

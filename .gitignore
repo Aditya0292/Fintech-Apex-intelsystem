@@ -12,12 +12,11 @@ build/
 .env
 .env.local
 
-# Logs & Debug
+# Logs & Artifacts
+logs/
+outputs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-prediction_logs.txt
-debug_crash.txt
-out_test*.json
-out_test_log*.txt
+

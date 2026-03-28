@@ -1,113 +1,146 @@
-# APEX Trade AI: Multi-Asset Institutional Intelligence
-*Institutional-Grade Analysis for XAUUSD, EURUSD, GBPUSD, & USDJPY*
-
-![Dashboard Preview](csm_page_1765266034599.png)
-
-## 📖 Introduction
-**APEX Trade AI** is a **Market Intelligence Operating System** designed to decode financial market complexity. It combines **Macro-Economic News**, **Smart Money Concepts (SMC)**, and **Machine Learning** into a single decision engine.
-
-Previously exclusive to Gold (XAUUSD), the system now scales across major forex pairs (EURUSD, GBPUSD, USDJPY), providing a unified view of the market.
+# 🌌 APEX Trade AI: Institutional Intelligence OS
+*Deterministic Alpha | Multi-Asset Confluence | Blockchain-Verified Oracle*
 
 ---
 
-## 🚀 Key Features
+![Dashboard Preview](images/csm_page_1765266034599.png)
 
-### 1. 🌍 Multi-Asset Ecosystem
-- **XAUUSD (Gold)**: The original "Sniper" precision model.
-- **Forex Majors**: Specialized models for EURUSD, GBPUSD, and USDJPY.
-- **Cross-Currency Correlation**: Analyzes how USD strength (DXY) impacts all assets simultaneously.
+## 🏛️ Executive Summary
+**APEX Trade AI** is a high-fidelity **Institutional Intelligence Operating System (IIOS)** engineered to identify liquidity voids and directional bias in global financial markets. By synthesizing real-time macro-sentiment, machine learning probabilistic models, and Smart Money Concept (SMC) heuristics, APEX provides a centralized command interface for professional-grade market navigation.
 
-### 2. 🧠 Intelligent News Engine
-- **Per-Currency Impact**: Differentiates between news affecting Base vs Quote currency (e.g. EUR news vs USD news for EURUSD).
-- **Time Decay**: Implements exponential decay (Half-life ~1.5h) to weight recent news more heavily.
-- **No Hallucinations**: Missing data defaults to Neutral (0.0).
-
-### 3. 🏛️ Smart Money Concepts (SMC)
-- **Order Blocks (OB)**: Automatic localization of Supply & Demand zones.
-- **Microstructure**: Detects institutional displacement and flow direction on lower timeframes.
-- **Liquidity Sweeps**: Identifies potential trap zones.
-
-### 4. 💻 Institutional Dashboard (New)
-- **Real-Time Interface**: A Next.js 14 web application for monitoring all assets.
-- **Asset Heatmap**: Quick visualization of buy/sell signals across the board.
-- **SMC Deep Dive**: Visual breakdown of order blocks and technicals.
+> [!IMPORTANT]
+> **Trust Infrastructure:** All primary analytical insights and trade signals are SHA-256 fingerprinted and anchored on the **Polygon Amoy Testnet** for immutable performance auditing.
 
 ---
 
-## 📊 Performance (Backtests)
-*Out-of-Sample Test Results (Dec 2025)*
+## 🔄 System Workflow & Architecture
+*Architecture Blueprint (Napkin AI Conceptual Visualized via Mermaid)*
 
-| Asset | Timeframe | Win Rate | ROI (Test) | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **XAUUSD** | 4-Hour | **79.2%** | **+20.2%** | 🟢 Prime |
-| **EURUSD** | Daily | 68.5% | +12.4% | 🟢 Stable |
-| **GBPUSD** | 4-Hour | 62.1% | +8.9% | 🟡 Volatile |
-| **USDJPY** | Daily | 71.0% | +15.1% | 🟢 Strong Trend |
+```mermaid
+graph TD
+    A["📡 DATA INGESTION (MT5/RSS/CSM)"] --> B["🧠 NEURAL CONFLUENCE STACK"]
+    B --> C["💎 CONFLUENCE & SYNTHESIS"]
+    C --> D["⚡ EXECUTION & RISK"]
+    D --> E["🖥️ INSTITUTIONAL TERMINAL"]
 
----
+    subgraph "Phase 1: Ingestion"
+    A1[MetaTrader 5] --> A
+    A2[News Sentiment] --> A
+    end
 
-## 🛠️ Usage
+    subgraph "Phase 2: Signal Generation"
+    B1[XGBoost Gradient Boosting] --> B
+    B2[LSTM Sequence Models] --> B
+    end
 
-### Option A: The Web Dashboard (Recommended)
-The easiest way to interact with APEX Trade AI.
-
-1.  **Start the Backend & Frontend**:
-    ```bash
-    # Terminal 1: Start Next.js
-    cd web-dashboard
-    npm run dev
-    ```
-2.  **Open Browser**:
-    Navigate to `http://localhost:3000`
-
-    *Note: The dashboard automatically triggers the Python backend (`tools/predict_all.py`) to fetch live data.*
-
-### Option B: Command Line Interface (CLI)
-For raw data output and debugging.
-
-**Analyze All Assets**:
-```bash
-python tools/predict_all.py --assets all
-```
-
-**Analyze Specific Asset**:
-```bash
-python tools/predict_all.py --assets EURUSD
-```
-
-**Generate JSON (for API)**:
-```bash
-python tools/predict_all.py --assets all --json
+    subgraph "Phase 3: Decision Matrix"
+    C1[Consensus Engine] --> C
+    C2[Macro Alignment] --> C
+    end
 ```
 
 ---
 
-## 🔧 Installation
+## 🔬 Mathematical Foundation
 
-### Prerequisites
-- Python 3.10+
-- Node.js 18+ (for Dashboard)
+### 1. Deterministic Risk: The Kelly Criterion
+The system optimizes position sizing using a modified Kelly Criterion to maximize logarithmic growth of the bankroll while mitigating the risk of ruin:
+$$f^* = \frac{p(b+1) - 1}{b}$$
+*Where:*
+- $f^*$: The optimal fraction of the bankroll to risk.
+- $p$: Probability of win (sourced from the Neural Confluence confidence score).
+- $b$: Payoff odds (Calculated Reward-to-Risk ratio).
 
-### 1. Backend Setup
-```bash
-# Install Python Dependencies
-pip install -r requirements.txt
-```
-
-### 2. Frontend Setup
-```bash
-cd web-dashboard
-npm install
-```
-
-### 3. Data Setup
-Ensure `data/` directory contains history files (e.g., `XAUUSD_history.csv`) or configure `src/data/mt5_interface.py` for live MT5 data.
+### 2. Neural Confluence: Gradient Boosting Logic
+Our directional bias is refined through an **XGBoost** objective function that minimizes log-loss while penalizing complexity (L1/L2 regularization) to prevent over-fitting in highly volatile market environments:
+$$\text{Obj}(\theta) = \sum_{i} l(y_i, \hat{y}_i) + \sum_{k} \Omega(f_k)$$
+The system achieves precision by ensuring **Probability $\ge 80\%$** before escalating to a "High Confluence" signal state.
 
 ---
 
-## 🏗️ Architecture
+## 📟 Live Terminal Preview
+*Real-time trace of the APEX Analytical Engine (Simulation)*
 
-- **`web-dashboard/`**: Next.js frontend (React, Tailwind, ShadCN).
-- **`tools/predict_all.py`**: The bridge. Runs analysis and outputs JSON for the frontend.
-- **`src/features/feature_pipeline.py`**: Feature engineering engine (77+ features/asset).
-- **`src/models/`**: Stores trained XGBoost/LSTM models for each timeframe.
+```bash
+[14:22:01] INF: Initializing Market Uplink... MT5 CONNECTED.
+[14:22:05] INTEL: XAUUSD (GOLD) Detects Liquidity Void @ 2145.50 - 2148.00
+[14:22:10] SMC: Market Structure Shift (MSS) Detected (15m Timeframe)
+[14:22:15] ML: XGBoost Signal [BULLISH] | LSTM Confidence [89.4%]
+[14:22:20] MAC: Multi-Asset Consensus Score: 92.4 (Rank #1)
+[14:22:25] LEDGER: Anchoring Insight Hash to Polygon... TX: 0xf9a3...d71e
+[14:22:30] STATUS: Opportunity Runway UPDATED. Strategy: [STRONG BUY]
+```
+
+---
+
+## 🚀 Key Intelligence Modules
+
+### 🏛️ Smart Money Concepts (SMC) Engine
+*   **Order Block Localization**: Identifies institutional supply/demand zones through automated price-action profiling.
+*   **Market Structure Shifts (MSS)**: pinpoints the exact moment high-timeframe trend inertia transitions into actionable entry setups.
+*   **Fair Value Gaps (FVG)**: Monitors price imbalances as magnets for future liquidation and rebalancing.
+
+### 🧠 Tactical News Oracle
+*   **Sentiment Decay Models**: Implements an exponential decay function ($e^{-\lambda t}$) ensuring that breaking macro-events exert a higher influence than stale historical records.
+*   **Asset-Specific Anchoring**: Differentiates between Base-rate events and Quote-currency shocks (e.g., distinguishing CPI impacts on EUR vs USD).
+
+---
+
+## ⚡ Quick-Start API Reference
+The APEX Backend provides a RESTful interface for external tool integration.
+
+### **GET /api/predict_all**
+Returns the current prioritized "Opportunity Runway".
+```json
+{
+  "assets": {
+    "XAUUSD": {
+      "bias": "BULLISH",
+      "confidence": 0.912,
+      "levels": { "tp": 2240.5, "sl": 2195.2 },
+      "smc": { "ob_found": true, "mss": "Confirmed" }
+    }
+  },
+  "ranking": [ "XAUUSD", "EURUSD" ]
+}
+```
+
+---
+
+## 📁 Project Hierarchy
+| Directory | Purpose |
+| :--- | :--- |
+| **`web-dashboard/`** | Next.js 15+ Institutional Command Terminal |
+| **`src/`** | Core Predictive Engines & SMC Logic |
+| **`tools/`** | Data Ingestion & Backtesting Pipelines |
+| **`docs/`** | Institutional Audits & PDF SitReps |
+| **`outputs/`** | Validated Intelligence Artifacts (JSON) |
+| **`logs/`** | Deterministic Run-time Audit Logs |
+
+---
+
+## 🗺️ 2026 Development Roadmap
+
+### **Phase 4: HFT & Specialized Execution**
+- Integration of FPGA-accelerated price-action feeds.
+- Sub-millisecond latency optimization for scalp-mode execution.
+
+### **Phase 5: Decentralized Intelligence (DAO)**
+- Implementation of Federated Model Training via the APEX DAO.
+- Federated model checkpoints anchored on Celestia or Avail for data availability.
+
+---
+
+## 🛠️ Contribution & Development
+We maintain institutional-grade code quality. All pull requests must:
+1.  **Pass Model Validation**: Precision must exceed 80% on out-of-sample data.
+2.  **Linting**: Adhere to PEP8 (Python) and ESLint (Next.js) standards.
+3.  **Audit**: New analytical modules must include a deterministic hashing verification test.
+
+---
+
+### 🏛️ Security & Audit Transparency
+All signals are verified through the **Polygon Amoy Proof-of-Signal** service. Performance history is immutable, ensuring that the APEX Ledger cannot be back-dated or altered post-execution.
+
+---
+*Powered by Aditya | APEX Intelligence Engine*

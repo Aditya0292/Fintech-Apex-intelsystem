@@ -1,4 +1,3 @@
-
 import sys
 import os
 import argparse
@@ -10,59 +9,58 @@ sys.path.append(os.getcwd())
 
 from src.features.feature_pipeline import run_pipeline
 
-def repair_dataset(input_path, schema_path, out_path):
-    print(f"Repairing features for {input_path} using {schema_path}...")
+def repair_all(assets_arg="all"):
+    assets = ["XAUUSD", "EURUSD", "GBPUSD", "USDJPY"]
+    if assets_arg != "all":
+        assets = [a.strip() for a in assets_arg.split(',')]
+        
+    timeframes = [
+        ("Daily", "1d"),
+        ("4 Hour", "4h"),
+        ("1 Hour", "1h"),
+        ("15 Min", "15m")
+    ]
     
-    if not os.path.exists(input_path):
-        print(f"Error: Input file {input_path} not found.")
-        sys.exit(1)
+    print(f"Starting Bulk Feature Repair for: {assets}")
+    
+    for asset in assets:
+        print(f"\n>>> REPAIRING ASSET: {asset}")
         
-    try:
-        # We assume run_pipeline handles loading, feature engineering, and schema validation.
-        # run_pipeline returns (features_df, target_series) or saves internally.
-        # We need to ensure we capture the output.
-        
-        # NOTE: run_pipeline signature is (data_path, suffix, ...).
-        # It usually saves to data/{data_filename without ext}{suffix}_features.csv
-        # We want to force output to `out_path`.
-        # This requires some adaptation if feature_pipeline doesn't support custom out path.
-        
-        # Alternative: We use FeatureEngineering class directly.
-        from src.features.feature_pipeline import FeatureEngineering
-        from src.utils.schema_validator import validate_feature_schema
-        import json
-        
-        fe = FeatureEngineering()
-        
-        # Load
-        df = pd.read_csv(input_path)
-        
-        # Generate Features (This might include time alignment, indicators etc)
-        # Assuming df has OHLCV
-        _, df_processed = fe.build_features(df)
-        
-        # Enforce Schema
-        df_validated = validate_feature_schema(df_processed)
-        
-        # Save output
-        if out_path.endswith('.npy'):
-            np.save(out_path, df_validated.values)
-        else:
-            df_validated.to_csv(out_path, index=True)
+        # 1. Base History (Daily/Full)
+        # Some assets have _history.csv, some have _1d.csv as base
+        # Logic: Try _history.csv first, then _1d.csv
+        base_path = f"data/{asset}_history.csv"
+        if not os.path.exists(base_path):
+            base_path = f"data/{asset}_1d.csv"
             
-        print(f"✅ Saved repaired features to {out_path}")
-        
-    except Exception as e:
-        print(f"❌ Repair failed: {e}")
-        sys.exit(1)
+        if os.path.exists(base_path):
+            # Run for Daily
+            # Suffix should be _{asset}_1d
+            suffix = f"_{asset}_1d"
+            print(f"  [Daily] Processing {base_path} -> Suffix: {suffix}")
+            run_pipeline(data_path=base_path, suffix=suffix, symbol=asset)
+        else:
+            print(f"  [Warning] No daily data found for {asset}")
+            
+        # 2. Intraday Timeframes
+        for tf_name, tf_code in timeframes:
+            if tf_code == "1d": continue # Handled above
+            
+            # Input file: data/{asset}_{tf_code}.csv
+            input_path = f"data/{asset}_{tf_code}.csv"
+            
+            if os.path.exists(input_path):
+                suffix = f"_{asset}_{tf_code}"
+                print(f"  [{tf_name}] Processing {input_path} -> Suffix: {suffix}")
+                run_pipeline(data_path=input_path, suffix=suffix, symbol=asset)
+            else:
+                print(f"  [Skip] {input_path} not found.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True, help="Input CSV file")
-    parser.add_argument("--schema", required=True, help="Schema JSON path")
-    parser.add_argument("--out", required=True, help="Output file path (.npy or .csv)")
+    parser.add_argument("--assets", default="all", help="all or list like XAUUSD,EURUSD")
+    parser.add_argument("--schema", default="77", help="Ignored (enforced by pipeline code)")
     
     args = parser.parse_args()
     
-    repair_dataset(args.input, args.schema, args.out)
-
+    repair_all(args.assets)

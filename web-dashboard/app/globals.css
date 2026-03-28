@@ -1,45 +1,110 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 5.5%; /* #0E0E0F */
-    --foreground: 0 0% 95%;
-
-    --card: 240 5% 8%; /* #141416 */
-    --card-foreground: 0 0% 95%;
-
-    --popover: 240 5% 8%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 210 100% 64%; /* #4BA3FF */
+    --background: 240 10% 4%;     /* #0A0A0E - Smoky Black */
+    --foreground: 0 0% 98%;       /* Whiteish foreground */
+    --card: 240 10% 8%;           /* #16161E - Matte Charcoal */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 4%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 20 80% 59%;        /* #E87B45 - Smoky Orange */
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 240 4% 16%;
+    --secondary: 240 10% 15%;     /* Subtle gray */
     --secondary-foreground: 0 0% 98%;
-
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --accent: 240 4% 16%;
+    --muted: 240 10% 15%;         /* Muted gray */
+    --muted-foreground: 240 5% 65%;
+    --accent: 20 80% 59%;
     --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84% 60%;     /* #FF5252 - Soft Crimson */
     --destructive-foreground: 0 0% 98%;
+    --border: 240 10% 12%;        /* Subtle dark border */
+    --input: 240 10% 12%;
+    --ring: 20 80% 59%;
+    --radius: 1.5rem;             /* More rounded for premium feel */
+    --bull: 150 100% 45%;         /* #00E676 - Muted Neon Green */
+    --bear: 0 100% 66%;           /* #FF5252 - Soft Crimson */
+  }
 
-    --border: 240 6% 13%; /* #1F1F22 */
-    --input: 240 6% 13%;
-    --ring: 210 100% 64%;
-
-    --radius: 1rem;
+  .light {
+    --background: 210 40% 98%;    /* Soft Off-White */
+    --foreground: 222 47% 15%;    /* Deep Navy Black */
+    --card: 0 0% 100%;             /* White Card */
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 15%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 215 16% 40%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 222 47% 15%;
   }
 }
 
 @layer base {
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+  * {
+    @apply border-border;
   }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-family: var(--font-poppins), system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* GLASSMORPHISM UTILITIES */
+  .glass-card {
+    @apply bg-card/40 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-[var(--radius)];
+    box-shadow: 
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+      0 20px 50px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+
+  .glass-panel {
+    @apply bg-background/60 backdrop-blur-3xl border-r border-white/5;
+  }
+
+  /* SMOKY GLOWS */
+  .glow-orange {
+    box-shadow: 0 0 15px rgba(232, 123, 69, 0.2), inset 0 0 10px rgba(232, 123, 69, 0.1);
+  }
+
+  .glow-green {
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.15), inset 0 0 10px rgba(0, 230, 118, 0.05);
+  }
+
+  .glow-red {
+    box-shadow: 0 0 15px rgba(255, 82, 82, 0.15), inset 0 0 10px rgba(255, 82, 82, 0.05);
+  }
+
+  /* CANDLESTICK UTILS */
+  .candle-bull { @apply bg-[#00E676] shadow-[0_0_8px_rgba(0,230,118,0.3)]; }
+  .candle-bear { @apply bg-[#FF5252] shadow-[0_0_8px_rgba(255,82,82,0.3)]; }
+}
+
+/* CUSTOM SCROLLBARS */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+}
+
+/* TYPOGRAPHY DENSITY */
+h1, h2, h3, h4, .text-dense {
+  @apply tracking-tight leading-tight;
 }

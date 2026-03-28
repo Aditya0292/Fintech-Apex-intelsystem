@@ -27,7 +27,7 @@ trading:
 
 logging:
   level: "INFO"
-  file: "apex_trade_ai.log"
+  file: "logs/apex_trade_ai.log"
   rotate_backup_count: 5
 
 features:

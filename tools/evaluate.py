@@ -69,6 +69,8 @@ def load_data(suffix=""):
     X = np.load(x_path)
     y = np.load(y_path)
     
+    # Remove slicing patch, model should expect 84 features now
+        
     # Feature Engineering for Trees
     X_last = X[:, -1, :]
     X_mean = np.mean(X, axis=1)

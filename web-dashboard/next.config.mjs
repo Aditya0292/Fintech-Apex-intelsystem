@@ -1,5 +1,7 @@
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  serverExternalPackages: ['satellite.js'],
+};
 
 export default nextConfig;
