@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = 'edge';
+// Removed edge runtime to fix Turbopack panic
 
 export async function GET(req: NextRequest) {
   const sitrep = {

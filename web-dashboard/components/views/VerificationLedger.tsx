@@ -39,30 +39,30 @@ export function VerificationLedger() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
         <div>
-          <h1 className="text-xl font-black text-foreground tracking-tight flex items-center gap-3">
-            <Link2 className="w-5 h-5 text-primary" />
+          <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-4">
+            <Link2 className="w-7 h-7 text-primary" />
             Verification Ledger
           </h1>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Blockchain-Anchored Signal History — Polygon Amoy Testnet — Immutable Proof</p>
+          <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em] mt-1.5">Blockchain-Anchored Signal History — Polygon Amoy Testnet — Immutable Proof</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-bull/5 border border-bull/20">
-          <CheckCircle className="w-3 h-3 text-bull" />
-          <span className="text-[9px] font-black text-bull uppercase tracking-widest">All 42 Signals Verified On-Chain</span>
+        <div className="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-bull/5 border border-bull/20 shadow-glow-bull/10">
+          <CheckCircle className="w-4 h-4 text-bull" />
+          <span className="text-[11px] font-black text-bull uppercase tracking-[0.15em]">Verified On-Chain: 42 Signals</span>
         </div>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 flex-shrink-0">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 flex-shrink-0">
         {stats.map((s, i) => (
           <motion.div
             key={s.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07 }}
-            className="p-3 rounded-2xl bg-card/40 backdrop-blur-xl border border-border text-center"
+            className="p-4 rounded-3xl bg-white/[0.02] border border-white/5 text-center group hover:bg-white/[0.04] transition-all"
           >
-            <div className="text-[8px] text-muted-foreground mb-1 uppercase tracking-wider">{s.label}</div>
-            <div className={cn("text-lg font-black tabular-nums", s.color)}>{s.value}</div>
+            <div className="text-[10px] text-white/30 mb-2 uppercase font-black tracking-widest">{s.label}</div>
+            <div className={cn("text-2xl font-black tabular-nums tracking-tighter", s.color)}>{s.value}</div>
           </motion.div>
         ))}
       </div>
@@ -70,24 +70,24 @@ export function VerificationLedger() {
       {/* Search & Table */}
       <GlassCard title="Signal History" subtitle="Click any signal to view on Polygon Explorer" className="flex-1">
         {/* Search */}
-        <div className="flex items-center gap-2 mt-4 mb-4 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-[11px]">
-          <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+        <div className="flex items-center gap-3 mt-5 mb-5 px-4 py-3 rounded-2xl bg-white/[0.03] border border-white/10 text-[13px]">
+          <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           <input
             type="text"
             placeholder="Search by symbol, ID, or TX hash..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent text-foreground placeholder-muted-foreground outline-none flex-1 text-[10px]"
+            className="bg-transparent text-foreground placeholder-white/20 outline-none flex-1 text-[12px] font-medium"
           />
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-[9px]">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-[12px]">
             <thead>
-              <tr className="border-b border-white/5">
+              <tr className="border-b border-white/10">
                 {["Signal ID", "Time", "Symbol", "Direction", "Confidence", "Status", "P&L", "TX Hash", "Proof"].map(h => (
-                  <th key={h} className="text-left px-3 py-2 text-[8px] font-black text-muted-foreground uppercase tracking-wider">{h}</th>
+                  <th key={h} className="text-left px-4 py-3 text-[10px] font-black text-white/40 uppercase tracking-[0.1em]">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -98,36 +98,36 @@ export function VerificationLedger() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.04 }}
-                  className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors cursor-pointer group"
+                  className="border-b border-white/[0.04] transition-none cursor-default"
                 >
-                  <td className="px-3 py-2.5 font-mono text-muted-foreground">{sig.id}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{sig.time}</td>
-                  <td className="px-3 py-2.5 font-bold text-foreground">{sig.symbol}</td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-4 py-4 font-mono text-white/40 font-bold">{sig.id}</td>
+                  <td className="px-4 py-4 text-white/50 font-medium">{sig.time}</td>
+                  <td className="px-4 py-4 font-black text-foreground tracking-tight">{sig.symbol}</td>
+                  <td className="px-4 py-4">
                     <span className={cn(
-                      "px-2 py-0.5 rounded-full text-[7px] font-black",
-                      sig.bias === "BUY" ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
+                      "px-3 py-1 rounded-lg text-[9px] font-black tracking-widest",
+                      sig.bias === "BUY" ? "bg-bull/20 text-bull border border-bull/20" : "bg-bear/20 text-bear border border-bear/20"
                     )}>{sig.bias}</span>
                   </td>
-                  <td className="px-3 py-2.5 tabular-nums text-primary font-bold">{sig.conf}%</td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-4 py-4 tabular-nums text-primary font-black">{sig.conf}%</td>
+                  <td className="px-4 py-4">
                     <span className={cn(
-                      "px-2 py-0.5 rounded-full text-[7px] font-black",
-                      sig.status === "WIN" ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
+                      "px-3 py-1 rounded-lg text-[9px] font-black tracking-widest",
+                      sig.status === "WIN" ? "bg-bull/20 text-bull border border-bull/20" : "bg-bear/20 text-bear border border-bear/20"
                     )}>{sig.status}</span>
                   </td>
-                  <td className={cn("px-3 py-2.5 font-black tabular-nums", sig.pnl.startsWith("+") ? "text-bull" : "text-bear")}>{sig.pnl}</td>
-                  <td className="px-3 py-2.5 font-mono text-muted-foreground text-[8px]">{sig.txHash}</td>
-                  <td className="px-3 py-2.5">
+                  <td className={cn("px-4 py-4 font-black tabular-nums text-[13px]", sig.pnl.startsWith("+") ? "text-bull" : "text-bear")}>{sig.pnl}</td>
+                  <td className="px-4 py-4 font-mono text-white/30 text-[10px] group-hover:text-white/60 transition-colors">{sig.txHash}</td>
+                  <td className="px-4 py-4">
                     <a
                       href={`https://www.oklink.com/amoy/tx/${sig.txHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-bull hover:text-bull/80 transition-colors group-hover:scale-105"
+                      className="flex items-center gap-2 text-bull transition-none"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <CheckCircle className="w-3 h-3" />
-                      <ExternalLink className="w-2.5 h-2.5" />
+                      <CheckCircle className="w-5 h-5 shadow-glow-bull" />
+                      <ExternalLink className="w-3.5 h-3.5 opacity-40" />
                     </a>
                   </td>
                 </motion.tr>

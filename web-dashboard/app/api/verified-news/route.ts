@@ -1,45 +1,79 @@
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 
-// In a real production app, this would query the Python backend or a database
-// For the hackathon demo, we provide high-impact, realistic verified insights
-// that demonstrate the Blockchain Proof Layer.
-
-const VERIFIED_NEWS = [
-    {
-        asset: "XAUUSD",
-        headline: "US Core PCE Inflation Matches Estimates; Gold Firm",
-        sentiment: "Bullish",
-        impact: "High",
-        confidence: 0.88,
-        timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
-        verifiable_hash: "3a7b8c...90f1",
-        proof_tx: "0x8fa1b4d32a9c1e7f6b5d4a3c2b1a0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a",
-        verified: true
-    },
-    {
-        asset: "EURUSD",
-        headline: "ECB Signals Potential Rate Cut in Upcoming Quarter",
-        sentiment: "Bearish",
-        impact: "High",
-        confidence: 0.92,
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-        verifiable_hash: "1f2e3d...4c5b",
-        proof_tx: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
-        verified: true
-    },
-    {
-        asset: "USDJPY",
-        headline: "Bank of Japan Unexpectedly Alters Yield Curve Control",
-        sentiment: "Bullish",
-        impact: "Critical",
-        confidence: 0.96,
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(), // 12 hours ago
-        verifiable_hash: "5a6b7c...8d9e",
-        proof_tx: "0x0f1e2d3c4b5a69788796a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4",
-        verified: true
-    }
-];
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-    return NextResponse.json(VERIFIED_NEWS);
+    const CACHE_FILE = path.resolve(process.cwd(), '..', 'data', 'prediction_cache.json');
+
+    try {
+        if (!fs.existsSync(CACHE_FILE)) {
+            console.log("VerifiedNews API: Cache file not found");
+            return NextResponse.json([]);
+        }
+
+        const cachedData = fs.readFileSync(CACHE_FILE, 'utf-8');
+        if (!cachedData || cachedData.trim() === '') {
+            return NextResponse.json([]);
+        }
+
+        let data;
+        try {
+            data = JSON.parse(cachedData);
+        } catch (parseErr) {
+            console.error("VerifiedNews API: JSON Parse Error", parseErr);
+            return NextResponse.json([]);
+        }
+
+        // EXCLUSIVELY fetch economic news. Geopolitical news is for World Monitor ONLY.
+        const econNews = data.market_context?.economic_news || [];
+        
+        // Strict "Midnight Rule": Show only today's news. Tomorrow appears after 12:00 AM.
+        const todayStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+        // 1. Format Economic News (Today's High Impact Only)
+        const formattedEcon = econNews
+            .filter((n: any) => {
+                const isHigh = n.impact === "High" || n.impact === "Critical";
+                const isToday = n.time && n.time.includes(todayStr);
+                return isHigh && isToday;
+            })
+            .map((n: any, idx: number) => {
+                const impact = n.impact || "High";
+                
+                return {
+                    asset: n.currency || n.country || "USD",
+                    headline: n.event || n.title || "Economic Release",
+                    sentiment: "Critical",
+                    impact: impact,
+                    confidence: 1.0,
+                    timestamp: n.time || n.date || new Date().toISOString(),
+                    actual: n.actual || "",
+                    forecast: n.forecast || "",
+                    previous: n.previous || "",
+                    verifiable_hash: `econ_high_${idx}_${Date.now()}`,
+                    proof_tx: "0x_institutional_verify",
+                    verified: true
+                };
+            });
+
+        // Sort by impact priority, then by time (recent first)
+        const priority: Record<string, number> = {
+            "Holiday": 4, "High": 3, "Critical": 3, "Medium": 2, "Moderate": 2, "Low": 1, "Neutral": 0
+        };
+
+        const allNews = formattedEcon.sort((a: any, b: any) => {
+            const pDiff = (priority[b.impact] || 0) - (priority[a.impact] || 0);
+            if (pDiff !== 0) return pDiff;
+
+            // If same impact, sort by time (Newest first)
+            return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        });
+
+        return NextResponse.json(allNews);
+    } catch (e) {
+        console.error("VerifiedNews API Error:", e);
+        return NextResponse.json([]);
+    }
 }

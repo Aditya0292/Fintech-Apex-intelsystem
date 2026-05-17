@@ -1,0 +1,42 @@
+# Institutional Asset Calibration Plan
+
+To achieve the same high level of accuracy and precision for `XAUUSD`, `EURUSD`, and `GBPUSD` as you currently have for `USDJPY`, we need to systematically calibrate the model parameters, feature weights, and threshold settings for each asset. `USDJPY` performs well because its specific volatility profile (`low_medium`), features (`csm_weight: 2.5`), and model hyper-parameters (`lgbm` overrides) are tightly coupled.
+
+Here is the step-by-step execution plan to bring all other assets up to the same standard.
+
+## 1. Asset-Specific Feature Engineering (Parity with USDJPY's CSM)
+`USDJPY` heavily relies on the Currency Strength Meter (`csm_weight: 2.5`). Other assets need equivalent macro/institutional drivers:
+*   **XAUUSD (Gold):** Highly sensitive to the US Dollar Index (DXY), US 10-Year Treasury Yields, and Volatility (VIX). We must ensure the data pipeline fetches and integrates DXY and yield correlations as primary features for Gold.
+*   **EURUSD & GBPUSD:** Highly sensitive to Central Bank interest rate differentials (ECB vs. Fed, BOE vs. Fed) and institutional order flow. 
+
+**Action:** Verify that `fetch_dxy.py` or similar scripts are feeding into the `X.npy` matrices for these specific assets before training.
+
+## 2. Hyperparameter Optimization for Tree Models
+`USDJPY` currently uses an overridden `lgbm` configuration (`n_estimators: 400`, `learning_rate: 0.01`). The other assets have rudimentary `xgb` configs or rely on defaults.
+*   **Action:** Run a Grid Search or Random Search specifically on the tree models (XGBoost and LightGBM) for each asset's dataset. 
+*   **Update `assets.yaml`:** Inject the optimal `n_estimators`, `max_depth`, and `learning_rate` into the `model_params` section for `XAUUSD`, `EURUSD`, and `GBPUSD`.
+
+## 3. Volatility Profiling & Threshold Tuning
+Each asset has a different ATR (Average True Range). `USDJPY` has a `movement_threshold` of `0.00008`, while `XAUUSD` is `0.0002`. If these are misaligned with actual market volatility, the Triple Barrier labeling will produce imbalanced classes, confusing the models.
+*   **Action:** Run a script to calculate the median 14-period ATR for each asset across the `1h` and `4h` timeframes.
+*   **Update `assets.yaml`:** Scale the `movement_threshold`, `tp_mult`, and `sl_mult` in the `triple_barrier` block so that the proportion of Buy/Sell/Hold labels generated roughly matches the distribution seen in the successful `USDJPY` dataset.
+
+## 4. SMC Window & Regime Weighting Calibration
+The Smart Money Concepts (SMC) lookback window dictates how far back the model looks for Fair Value Gaps (FVGs) and Order Blocks.
+*   `XAUUSD` is currently set to `200`, while `USDJPY` is `500`.
+*   **Action:** We need to backtest `smc_window` values of `200`, `300`, `400`, and `500` for `XAUUSD` to see which yields the highest precision in the walk-forward validation.
+*   Adjust `smc_weight` and `news_weight` dynamically based on which features the Meta-Learner (Logistic Regression) assigns the highest coefficients to during training.
+
+## 5. Execution & Validation Protocol
+To strictly validate that parity has been achieved, we will use the `train_ensemble.py` script's **Confidence Threshold Analysis** output.
+
+**Step-by-Step Execution:**
+1.  Generate datasets for all assets via MT5 interface.
+2.  Run the training pipeline for each asset with the 100-candle purge gap:
+    *   `python src/models/train_ensemble.py --suffix _xau --gap 100`
+    *   `python src/models/train_ensemble.py --suffix _eur --gap 100`
+    *   `python src/models/train_ensemble.py --suffix _gbp --gap 100`
+3.  **The Target Metric:** Review the terminal output for `--- Confidence Threshold Analysis ---`. We must tune the `assets.yaml` parameters iteratively until the Accuracy for `Thresh=0.55` and `Thresh=0.60` matches or exceeds the baseline set by the `USDJPY` run.
+
+### Next Steps
+Would you like me to create the script to perform the **Hyperparameter Optimization (Step 2)**, or should we begin by writing an **ATR Volatility Profiler (Step 3)** to calibrate the Triple Barrier thresholds first?

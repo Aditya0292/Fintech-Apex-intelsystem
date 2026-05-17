@@ -26,7 +26,7 @@ class ConfigLoader:
             },
             "data": {
                 "pairs": ["XAUUSD"],
-                "timeframes": ["15m", "1h", "4h", "1d"],
+                "timeframes": ["1h", "4h", "1d"],
                 "history_length_days": 1000,
                 "news_cache_seconds": 600
             },

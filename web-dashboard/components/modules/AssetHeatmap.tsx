@@ -4,22 +4,23 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
-const assets = [
-  { symbol: "XAUUSD", price: 2154.2, change: 0.24, bias: "BULLISH" },
-  { symbol: "EURUSD", price: 1.0842, change: -0.12, bias: "BEARISH" },
-  { symbol: "GBPUSD", price: 1.2654, change: 0.08, bias: "BULLISH" },
-  { symbol: "USDJPY", price: 149.23, change: 0.02, bias: "NEUTRAL" },
-];
+import { useApex } from "@/context/ApexContext";
 
 export function AssetHeatmap() {
+  const { biases, activeSymbol, setActiveSymbol } = useApex();
+
   return (
     <GlassCard title="Asset Heatmap" subtitle="Real-time Bias" className="h-full">
       <div className="grid grid-cols-2 gap-3 mt-6">
-        {assets.map((asset, idx) => (
+        {biases.map((asset, idx) => (
           <motion.div
             key={idx}
             whileHover={{ scale: 1.02 }}
-            className="group relative p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-primary/20 transition-all cursor-pointer overflow-hidden"
+            onClick={() => setActiveSymbol(asset.symbol)}
+            className={cn(
+                "group relative p-4 rounded-2xl bg-white/[0.02] border transition-all cursor-pointer overflow-hidden",
+                activeSymbol === asset.symbol ? "border-primary/50 shadow-[0_0_15px_rgba(0,255,255,0.1)]" : "border-white/5 hover:border-primary/20"
+            )}
           >
             <div className="flex justify-between items-start mb-3 relative z-10">
               <span className="text-[10px] font-bold text-foreground tracking-tight uppercase">{asset.symbol}</span>

@@ -24,28 +24,32 @@ class RiskManager:
         
         logger.info(f"RiskManager initialized. Bankroll: ${bankroll}, Max Risk: {self.max_risk_pct:.1%}")
 
-    def calculate_kelly_size(self, win_prob: float, win_loss_ratio: float = 1.5) -> float:
+    def calculate_kelly_size(self, win_prob: float, win_loss_ratio: float = 1.5, smc_conflict: bool = False) -> float:
         """
         Calculates optimal position size fraction using Half-Kelly.
         f* = (p(b+1) - 1) / b
-        where:
-        p = probability of win
-        b = odds received (win/loss ratio)
+        
+        V8 Institutional Update:
+        If smc_conflict is True (Long and Short SMC signals both active),
+        we apply an additional 0.5x safety multiplier to the Kelly fraction.
         """
         if win_prob <= 0.5:
             return 0.0
             
         # Standard Kelly Formula
-        # q = 1-p
-        # f = p - (q / b)
         q = 1.0 - win_prob
         full_kelly = win_prob - (q / win_loss_ratio)
         
-        # Safety: Fractional Kelly (Half Kelly is industry standard for smooth growth)
-        half_kelly = full_kelly * 0.5
+        # Safety: Fractional Kelly (Half Kelly is industry standard)
+        size = full_kelly * 0.5
+        
+        # SMC Conflict Override
+        if smc_conflict:
+            size *= 0.5
+            logger.warning("SMC Conflict detected - Halving Kelly position size for safety.")
         
         # Cap at Max Risk
-        size = max(0.0, min(half_kelly, self.max_risk_pct))
+        size = max(0.0, min(size, self.max_risk_pct))
         return size
 
     def calculate_position_size(self, entry_price: float, sl_price: float, risk_pct: Optional[float] = None) -> Dict:

@@ -4,6 +4,9 @@ import path from 'path';
 import fs from 'fs';
 import { promisify } from 'util';
 
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+
 const execAsync = promisify(exec);
 export const dynamic = 'force-dynamic'; // No caching
 
@@ -25,6 +28,34 @@ async function checkAndRebuildScalers() {
             console.error("❌ Auto-Recovery Failed:", error);
             // Proceed anyway, predict_all might fail but we tried
         }
+    }
+}
+
+async function getAIRiskAssessment(newsHeadlines: string[]): Promise<string> {
+    if (!GROQ_API_KEY || GROQ_API_KEY === 'your_groq_key_here') return "SITREP: Groq Intelligence Link Offline.";
+
+    try {
+        const prompt = `Analyze these geopolitical headlines and provide a high-conviction 2-sentence tactical risk assessment (MAX 50 words). Format as: 'SITREP: [Summary] // RISK_SCORE: [0-100]'. Headlines: ${newsHeadlines.join(" | ")}`;
+        
+        const resp = await fetch(GROQ_URL, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${GROQ_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "llama3-70b-8192",
+                messages: [{ role: "user", content: prompt }],
+                temperature: 0.5,
+                max_tokens: 100
+            })
+        });
+
+        if (!resp.ok) throw new Error("Groq API error");
+        const data = await resp.json();
+        return data.choices[0]?.message?.content || "SITREP: Intelligence data inconclusive.";
+    } catch (e) {
+        return "SITREP: AI Assessment failed during uplink.";
     }
 }
 
@@ -52,39 +83,34 @@ export async function GET(request: Request) {
         }
     }
 
-    // 3. RUN PREDICTION
-    const scriptPath = path.resolve(process.cwd(), '..', 'tools', 'predict_all.py');
-    const cmd = `python "${scriptPath}" --assets ${assets} --json`;
+    // 3. READ FROM DAEMON CACHE
+    if (!fs.existsSync(CACHE_FILE)) {
+        return NextResponse.json(
+            { error: "Cache empty. Daemon initializing... please wait 60s." }, 
+            { status: 503 }
+        );
+    }
 
-    console.log(`🚀 Executing: ${cmd}`);
-
-    return new Promise<NextResponse>((resolve) => {
-        exec(cmd, { cwd: path.resolve(process.cwd(), '..') }, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`Exec Error: ${error}`);
-                console.error(`Stderr: ${stderr}`);
-                resolve(NextResponse.json({ error: "Analysis Failed", details: stderr }, { status: 500 }));
-                return;
-            }
-
+    try {
+        const cachedData = fs.readFileSync(CACHE_FILE, 'utf-8');
+        let data = JSON.parse(cachedData);
+        
+        // 4. ADD AI RISK ASSESSMENT (Groq Integration) - Only if not already present
+        if (!data.ai_risk_assessment) {
             try {
-                // Parse Data
-                const data = JSON.parse(stdout);
-
-                // 4. SAVE TO CACHE
-                try {
-                    fs.writeFileSync(CACHE_FILE, JSON.stringify(data));
-                    console.log("💾 Cache updated.");
-                } catch (cacheErr) {
-                    console.error("Failed to write cache:", cacheErr);
-                }
-
-                resolve(NextResponse.json(data));
+                const newsResp = await fetch(`${new URL(request.url).origin}/api/verified-news`);
+                const news = await newsResp.json();
+                const headlines = news.map((n: any) => n.headline);
+                const assessment = await getAIRiskAssessment(headlines);
+                data.ai_risk_assessment = assessment;
             } catch (e) {
-                console.error("JSON Parse Error", e);
-                console.log("Raw Output:", stdout);
-                resolve(NextResponse.json({ error: "Invalid JSON from Backend", raw: stdout }, { status: 500 }));
+                console.error("AI Risk Assessment failed", e);
             }
-        });
-    });
+        }
+        
+        return NextResponse.json(data);
+    } catch (e) {
+        console.error("Cache Read/Parse Error", e);
+        return NextResponse.json({ error: "Failed to read daemon cache." }, { status: 500 });
+    }
 }

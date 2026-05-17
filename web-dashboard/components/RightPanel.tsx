@@ -1,6 +1,8 @@
 import React from 'react';
 import NewsFeed from './NewsFeed';
 import { useApexData } from '../hooks/useApexData';
+import { useApex } from '../context/ApexContext';
+
 interface PairDetailProps {
   asset: string;
   timeframes: { tf: string; signal: 'BUY' | 'SELL' | 'WAIT'; confidence: number }[];
@@ -33,7 +35,8 @@ function PairDetailCards({ asset, timeframes }: PairDetailProps) {
 }
 
 export default function RightPanel() {
-  const { news } = useApexData();
+  const { news, combatStatus } = useApexData();
+  const { activeSymbol, liveData } = useApex();
 
   return (
     <div className="flex flex-col w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
@@ -41,41 +44,34 @@ export default function RightPanel() {
       {/* PAIR DEPTH (NEW SECTION) */}
       <div className="p-[14px] border-b border-border bg-terminal-bg-card/30">
         <PairDetailCards 
-          asset="XAUUSD" 
+          asset={activeSymbol} 
           timeframes={[
-            { tf: 'M15', signal: 'BUY', confidence: 68 },
-            { tf: 'H1', signal: 'BUY', confidence: 85 },
-            { tf: 'H4', signal: 'BUY', confidence: 92 },
-            { tf: 'D1', signal: 'WAIT', confidence: 45 },
+            { tf: '15M', signal: liveData?.assets?.[activeSymbol]?.predictions?.['15 Minute']?.signal?.toUpperCase() || 'WAIT', confidence: liveData?.assets?.[activeSymbol]?.predictions?.['15 Minute']?.confidence ? Math.round(liveData.assets[activeSymbol].predictions['15 Minute'].confidence * 100) : 50 },
+            { tf: 'H1', signal: liveData?.assets?.[activeSymbol]?.predictions?.['1 Hour']?.signal?.toUpperCase() || 'WAIT', confidence: liveData?.assets?.[activeSymbol]?.predictions?.['1 Hour']?.confidence ? Math.round(liveData.assets[activeSymbol].predictions['1 Hour'].confidence * 100) : 50 },
+            { tf: 'H4', signal: liveData?.assets?.[activeSymbol]?.predictions?.['4 Hour']?.signal?.toUpperCase() || 'WAIT', confidence: liveData?.assets?.[activeSymbol]?.predictions?.['4 Hour']?.confidence ? Math.round(liveData.assets[activeSymbol].predictions['4 Hour'].confidence * 100) : 50 },
+            { tf: 'D1', signal: liveData?.assets?.[activeSymbol]?.predictions?.['Daily']?.signal?.toUpperCase() || 'WAIT', confidence: liveData?.assets?.[activeSymbol]?.predictions?.['Daily']?.confidence ? Math.round(liveData.assets[activeSymbol].predictions['Daily'].confidence * 100) : 50 },
           ]}
         />
       </div>
       <div className="p-[14px] border-b border-border">
         <div className="font-mono text-[9px] tracking-[0.1em] font-bold text-text-secondary mb-2 uppercase">MTF Alignment</div>
-        <div className="font-mono text-[9px] text-terminal-gold mb-3">3/4 ALIGNED</div>
+        <div className="font-mono text-[9px] text-terminal-gold mb-3">CONFLUENCE LIVE</div>
         
-        {/* Placeholder bars */}
+        {/* Placeholder bars mapped to live */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] text-text-muted w-[28px]">1D</span>
-            <div className="h-[6px] bg-terminal-bg-hover flex-1 rounded-[1px] overflow-hidden"><div className="h-full bg-terminal-green w-[85%]" /></div>
-            <span className="font-mono text-[9px] text-terminal-green w-[28px] text-right font-bold">BUY</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] text-text-muted w-[28px]">4H</span>
-            <div className="h-[6px] bg-terminal-bg-hover flex-1 rounded-[1px] overflow-hidden"><div className="h-full bg-terminal-green w-[72%]" /></div>
-            <span className="font-mono text-[9px] text-terminal-green w-[28px] text-right font-bold">BUY</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] text-text-muted w-[28px]">1H</span>
-            <div className="h-[6px] bg-terminal-bg-hover flex-1 rounded-[1px] overflow-hidden"><div className="h-full bg-terminal-green w-[60%]" /></div>
-            <span className="font-mono text-[9px] text-terminal-green w-[28px] text-right font-bold">BUY</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] text-text-muted w-[28px]">15M</span>
-            <div className="h-[6px] bg-terminal-bg-hover flex-1 rounded-[1px] overflow-hidden"><div className="h-full bg-terminal-amber w-[48%]" /></div>
-            <span className="font-mono text-[9px] text-terminal-amber w-[28px] text-right font-bold">WAIT</span>
-          </div>
+          {['Daily', '4 Hour', '1 Hour'].map(tfName => {
+             const pred = liveData?.assets?.[activeSymbol]?.predictions?.[tfName];
+             const sig = pred?.signal?.toUpperCase() || 'WAIT';
+             const conf = pred?.confidence ? Math.round(pred.confidence * 100) : 50;
+             const color = sig === 'BUY' || sig === 'LONG' ? 'terminal-green' : sig === 'SELL' || sig === 'SHORT' ? 'terminal-red' : 'terminal-amber';
+             return (
+              <div key={tfName} className="flex items-center gap-2">
+                <span className="font-mono text-[9px] text-text-muted w-[28px]">{tfName.replace(' Hour', 'H').replace('Daily', '1D')}</span>
+                <div className="h-[6px] bg-terminal-bg-hover flex-1 rounded-[1px] overflow-hidden"><div className={`h-full bg-${color} w-[${conf}%]`} style={{width: `${conf}%`}} /></div>
+                <span className={`font-mono text-[9px] text-${color} w-[28px] text-right font-bold`}>{sig}</span>
+              </div>
+             )
+          })}
         </div>
       </div>
 
@@ -83,19 +79,10 @@ export default function RightPanel() {
       <div className="p-[14px] border-b border-border">
         <div className="font-mono text-[9px] tracking-[0.1em] font-bold text-text-secondary mb-2 uppercase">Capital Flow (CSM)</div>
         <div className="grid grid-cols-4 gap-1.5 mt-3">
-          {[
-            { s: 'USD', v: '+2.4', c: 'text-terminal-green' },
-            { s: 'EUR', v: '-1.2', c: 'text-terminal-red' },
-            { s: 'JPY', v: '-3.1', c: 'text-terminal-red' },
-            { s: 'GBP', v: '+0.4', c: 'text-text-secondary' },
-            { s: 'AUD', v: '+1.8', c: 'text-terminal-green' },
-            { s: 'CAD', v: '-0.2', c: 'text-text-muted' },
-            { s: 'CHF', v: '+0.9', c: 'text-text-secondary' },
-            { s: 'NZD', v: '-2.1', c: 'text-terminal-red' },
-          ].map(curr => (
-            <div key={curr.s} className="bg-terminal-bg-card border border-border rounded-[2px] p-1 flex flex-col items-center">
-              <span className="font-mono text-[8px] text-text-muted">{curr.s}</span>
-              <span className={`font-mono text-[10px] font-bold ${curr.c}`}>{curr.v}</span>
+          {Object.entries(liveData?.market_context?.csm || { USD: 5, EUR: 5, GBP: 5, JPY: 5, AUD: 5, CAD: 5, CHF: 5, NZD: 5 }).slice(0, 8).map(([curr, val]: [string, any]) => (
+            <div key={curr} className="bg-terminal-bg-card border border-border rounded-[2px] p-1 flex flex-col items-center">
+              <span className="font-mono text-[8px] text-text-muted">{curr}</span>
+              <span className={`font-mono text-[10px] font-bold ${val > 6 ? 'text-terminal-green' : val < 4 ? 'text-terminal-red' : 'text-text-secondary'}`}>{val.toFixed(1)}</span>
             </div>
           ))}
         </div>
@@ -116,7 +103,7 @@ export default function RightPanel() {
 
       {/* MACRO NEWS FEED */}
       <div className="pt-3 flex-1 overflow-hidden">
-         <NewsFeed news={news} />
+         <NewsFeed news={news} combatStatus={combatStatus} />
       </div>
 
     </div>

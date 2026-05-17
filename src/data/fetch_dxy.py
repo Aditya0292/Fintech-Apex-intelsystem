@@ -118,10 +118,10 @@ def align_dxy_with_gold(gold_csv="data/XAUUSD_history.csv"):
     
     # Forward fill DXY holes
     cols_to_fill = ['dxy_open', 'dxy_high', 'dxy_low', 'dxy_close', 'dxy_volume']
-    merged[cols_to_fill] = merged[cols_to_fill].fillna(method='ffill')
+    merged[cols_to_fill] = merged[cols_to_fill].ffill()
     
     # Fill remaining (start of data) with backfill or first valid
-    merged[cols_to_fill] = merged[cols_to_fill].fillna(method='bfill')
+    merged[cols_to_fill] = merged[cols_to_fill].bfill()
     
     # CRITICAL FIX: Return ONLY DXY columns and Time. 
     # Otherwise pipeline renames 'close' (Gold) to 'dxy_close' causing 100% correlation.

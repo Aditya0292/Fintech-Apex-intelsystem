@@ -45,3 +45,20 @@ export interface SignalData {
   rr: string;
   confidence: number;
 }
+
+export interface NewsCombatStatus {
+  is_monitoring: boolean;
+  combat_mode: boolean;
+  active_event?: {
+    title: string;
+    country: string;
+    date: string;
+    impact: string;
+  };
+  last_results?: Record<string, {
+    actual: string;
+    bias: string;
+    time: string;
+  }>;
+  updated_at: string;
+}

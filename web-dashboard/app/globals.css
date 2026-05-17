@@ -92,6 +92,15 @@
   .candle-bear { @apply bg-[#FF5252] shadow-[0_0_8px_rgba(255,82,82,0.3)]; }
 }
 
+/* GLOBAL HOVER LOCKDOWN: Institutional Static Mode */
+@media (hover: hover) {
+  *:hover {
+    transition: none !important;
+    transform: none !important;
+    box-shadow: inherit !important;
+  }
+}
+
 /* CUSTOM SCROLLBARS */
 ::-webkit-scrollbar {
   width: 6px;
@@ -101,7 +110,7 @@
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+  @apply bg-white/10 rounded-full transition-none;
 }
 
 /* TYPOGRAPHY DENSITY */

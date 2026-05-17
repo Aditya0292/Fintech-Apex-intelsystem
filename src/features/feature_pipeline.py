@@ -37,6 +37,14 @@ from src.utils.logger import get_logger
 from src.data.csm_provider import CSMProvider
 from src.data.news_manager import NewsManager
 
+# SMC Module Imports (V8 Upgrade)
+from src.features.smc.order_blocks import OrderBlockDetector
+from src.features.smc.fair_value_gaps import FairValueGapDetector
+from src.features.smc.liquidity_sweeps import LiquiditySweepDetector
+from src.features.smc.market_structure import MarketStructureEngine
+from src.features.smc.liquidity_pools import LiquidityPoolMapper
+from src.features.smc.confluence_scorer import ConfluenceScorer
+
 logger = get_logger()
 
 # ============================================================================
@@ -65,7 +73,8 @@ class Config:
         
         # Outputs
         self.OUTPUT_DIR = Path("data")
-        self.SCHEMA_PATH = feat_conf.get('schema_path', "src/config/feature_schema_v2.json")
+        # Explicit V8 Schema Lock
+        self.SCHEMA_PATH = "src/config/feature_schema_v2.json"
         
         self.OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -74,6 +83,9 @@ class Config:
         tf_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'timeframes.yaml')
         if os.path.exists(tf_path):
              import yaml
+             with open(self.SCHEMA_PATH, 'r') as f:
+                 schema = json.load(f)
+                 logger.info(f"Loaded schema version {schema.get('version', 'unknown')} from {self.SCHEMA_PATH} with {len(schema.get('features', []))} features.")
              with open(tf_path, 'r') as f:
                  self.tf_overrides = yaml.safe_load(f)
              logger.info(f"Loaded Timeframe Overrides from {tf_path}")
@@ -239,8 +251,8 @@ class MarketStructure:
         df['swing_high'] = swing_high
         df['swing_low'] = swing_low
         
-        df['last_swing_high'] = swing_high.fillna(method='ffill')
-        df['last_swing_low'] = swing_low.fillna(method='ffill')
+        df['last_swing_high'] = swing_high.ffill()
+        df['last_swing_low'] = swing_low.ffill()
         
         df['prev_swing_high'] = df['last_swing_high'].shift(1)
         
@@ -266,7 +278,7 @@ class MarketStructure:
         df['trend'] = 0
         df.loc[break_high, 'trend'] = 1
         df.loc[break_low, 'trend'] = -1
-        df['trend'] = df['trend'].replace(0, np.nan).fillna(method='ffill').fillna(0)
+        df['trend'] = df['trend'].replace(0, np.nan).ffill().fillna(0)
         
         return df
 
@@ -320,11 +332,11 @@ class OrderBlocks:
                     df.iat[start_idx, df.columns.get_loc('ob_strength')] = row['volume'] if 'volume' in df.columns else 1.0
                     break
                     
-        df['active_ob_bull_top'] = df['ob_top'].where(df['ob_bullish']==1).fillna(method='ffill')
-        df['active_ob_bull_bot'] = df['ob_bottom'].where(df['ob_bullish']==1).fillna(method='ffill')
+        df['active_ob_bull_top'] = df['ob_top'].where(df['ob_bullish']==1).ffill()
+        df['active_ob_bull_bot'] = df['ob_bottom'].where(df['ob_bullish']==1).ffill()
         
-        df['active_ob_bear_top'] = df['ob_top'].where(df['ob_bearish']==1).fillna(method='ffill')
-        df['active_ob_bear_bot'] = df['ob_bottom'].where(df['ob_bearish']==1).fillna(method='ffill')
+        df['active_ob_bear_top'] = df['ob_top'].where(df['ob_bearish']==1).ffill()
+        df['active_ob_bear_bot'] = df['ob_bottom'].where(df['ob_bearish']==1).ffill()
         
         df['inside_ob_bull'] = ((df['low'] <= df['active_ob_bull_top']) & (df['high'] >= df['active_ob_bull_bot'])).astype(int)
         df['inside_ob_bear'] = ((df['high'] >= df['active_ob_bear_bot']) & (df['low'] <= df['active_ob_bear_top'])).astype(int)
@@ -381,10 +393,10 @@ class FairValueGaps:
         df.loc[bear_fvg, 'fvg_bear_top'] = c1_low
         df.loc[bear_fvg, 'fvg_bear_bot'] = c3_high
         
-        df['active_fvg_bull_top'] = df['fvg_bull_top'].fillna(method='ffill')
-        df['active_fvg_bull_bot'] = df['fvg_bull_bot'].fillna(method='ffill')
-        df['active_fvg_bear_top'] = df['fvg_bear_top'].fillna(method='ffill')
-        df['active_fvg_bear_bot'] = df['fvg_bear_bot'].fillna(method='ffill')
+        df['active_fvg_bull_top'] = df['fvg_bull_top'].ffill()
+        df['active_fvg_bull_bot'] = df['fvg_bull_bot'].ffill()
+        df['active_fvg_bear_top'] = df['fvg_bear_top'].ffill()
+        df['active_fvg_bear_bot'] = df['fvg_bear_bot'].ffill()
         
         df['inside_fvg_bull'] = ((df['low'] <= df['active_fvg_bull_top']) & 
                                  (df['high'] >= df['active_fvg_bull_bot'])).astype(int)
@@ -459,22 +471,31 @@ class ConfluenceDetector:
     
     @staticmethod
     def calculate_confluence_score(df: pd.DataFrame, atr: pd.Series) -> pd.Series:
+        """
+        V8 Institutional Update:
+        Calculates a 0-100 confluence score using the new SMC modular outputs.
+        """
         score = pd.Series(0.0, index=df.index)
         
-        score += df['inside_ob_bull'] * 20
-        score += df['inside_ob_bear'] * 20
+        # New V8 OB Mappings
+        score += df.get('ob_bullish_present', 0) * 20
+        score += df.get('ob_bearish_present', 0) * 20
         
-        score += df['inside_fvg_bull'] * 20
-        score += df['inside_fvg_bear'] * 20
+        # New V8 FVG Mappings
+        score += df.get('fvg_bullish_active', 0) * 20
+        score += df.get('fvg_bearish_active', 0) * 20
         
-        score += df['sweep_liquidity_low'] * 15 # Bullish reversaL
-        score += df['sweep_liquidity_high'] * 15 # Bearish reversal
+        # New V8 Sweep Mappings
+        if 'sweep_detected' in df.columns and 'sweep_direction' in df.columns:
+            score += ((df['sweep_detected'] == 1) & (df['sweep_direction'] == -1)).astype(int) * 15
+            score += ((df['sweep_detected'] == 1) & (df['sweep_direction'] == 1)).astype(int) * 15
         
-        score += df['in_discount'] * 10
-        score += df['in_premium'] * 10
+        # Structure Mappings (These columns still exist from PremiumDiscount)
+        score += df.get('in_discount', 0) * 10
+        score += df.get('in_premium', 0) * 10
         
-        score += df['in_ote_bull'] * 15
-        score += df['in_ote_bear'] * 15
+        score += df.get('in_ote_bull', 0) * 15
+        score += df.get('in_ote_bear', 0) * 15
         
         return score.clip(0, 100)
 
@@ -501,6 +522,14 @@ class FeatureEngineering:
         self.confluence = ConfluenceDetector()
         self.csm_provider = CSMProvider()
         self.news_manager = NewsManager()
+
+        # V8 Institutional Detectors
+        self.ob_v8 = OrderBlockDetector(displacement_threshold=2.0)
+        self.fvg_v8 = FairValueGapDetector()
+        self.sweep_v8 = LiquiditySweepDetector()
+        self.structure_v8 = MarketStructureEngine()
+        self.pool_v8 = LiquidityPoolMapper()
+        self.scorer_v8 = ConfluenceScorer()
     
     def _add_external_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -526,8 +555,8 @@ class FeatureEngineering:
                 
                 df = align_datasets(df, dxy_df, on='time', tolerance='4h')
                 
-                df['dxy_close'] = df['dxy_close'].fillna(method='ffill')
-                df['dxy_open'] = df['dxy_open'].fillna(method='ffill')
+                df['dxy_close'] = df['dxy_close'].ffill()
+                df['dxy_open'] = df['dxy_open'].ffill()
                 df['dxy_rsi'] = self.tech.rsi(df['dxy_close'])
                 df['dxy_ema_50'] = self.tech.ema(df['dxy_close'], 50)
                 df['dxy_trend'] = np.where(df['dxy_close'] > df['dxy_ema_50'], 1, -1)
@@ -720,20 +749,46 @@ class FeatureEngineering:
         df['macd'], _, _ = self.tech.macd(df['close'])
         df['adx'] = self.tech.adx(df)
  
-        # 2. Market Structure (SMC)
-        swing_high, swing_low = self.structure.detect_swing_points(df, config.SWING_LENGTH)
-        df = self.structure.label_structure(df, swing_high, swing_low)
-        df = self.structure.detect_bos_choch(df)
+        # 2. V8 Institutional SMC Modular Layer
+        # Bridge: V8 detectors expect specific column names
+        df['atr_14'] = df['atr_norm']
+        df['rsi_14'] = df['rsi']
+        df['range_max'] = df['high'].rolling(window=20).max().fillna(df['high'])
+        df['range_min'] = df['low'].rolling(window=20).min().fillna(df['low'])
         
-        # 3. Advanced SMC
-        df = self.ob.detect_order_blocks(df)
-        df = self.fvg.detect_fvg(df)
-        df = self.ob.detect_liquidity_sweeps(df)
- 
-        # SMC Densities
+        # Compute order blocks
+        df = self.ob_v8.detect(df)
+        
+        # Compute FVGs
+        df = self.fvg_v8.detect(df)
+        
+        # Compute Sweeps
+        df = self.sweep_v8.detect(df)
+        
+        # Compute Structure
+        df = self.structure_v8.detect(df)
+        
+        # Compute Liquidity Pools
+        df = self.pool_v8.detect(df)
+        
+        # Compute Confluence
+        df = self.scorer_v8.calculate(df)
+        logger.info(f"V8 SMC Pipeline complete. Columns: {len(df.columns)}")
+
+        # 3. Enhanced Interaction Features (Module 9)
+        df['ob_fvg_confluence'] = (df['ob_bullish_present'] * df['fvg_bullish_active']).astype(float)
+        df['sweep_ob_combo'] = (df['sweep_detected'] * (df['ob_bullish_present'] | df['ob_bearish_present'])).astype(float)
+        df['structure_sweep'] = (df['bos_confirmed'] * df['sweep_choch_confirmed']).astype(float)
+
+        # 4. Classical & Legacy Features (Internal)
+        swing_high, swing_low = self.structure.detect_swing_points(df, config.SWING_LENGTH)
+        # We keep some legacy for backward compatibility during phase-in
+        df = self.structure.label_structure(df, swing_high, swing_low)
+        
+        # SMC Densities (Legacy)
         window_density = 50
-        df['fvg_density'] = (df['fvg_bullish'] + df['fvg_bearish']).rolling(window_density).sum()
-        df['ob_density'] = (df['ob_bullish'] + df['ob_bearish']).rolling(window_density).sum()
+        df['fvg_density'] = (df['fvg_bullish_active']).rolling(window_density).sum()
+        df['ob_density'] = (df['ob_bullish_present']).rolling(window_density).sum()
         
         # 4. Zones
         df = self.zones.calculate_zones(df)
@@ -768,7 +823,7 @@ class FeatureEngineering:
         df['london_close'] = ((df['hour'] >= 15) & (df['hour'] <= 17)).astype(int)
         
         # Fill NaNs globally
-        df = df.fillna(method='ffill').fillna(0)
+        df = df.ffill().fillna(0)
         
         # SCHEMA ENFORCEMENT
         features_df = validate_feature_schema(df, config.SCHEMA_PATH)
@@ -800,6 +855,26 @@ def run_pipeline(data_path="data/XAUUSD_history.csv", suffix="", symbol="XAUUSD"
  
     # Load your CSV
     df = pd.read_csv(data_path)
+    if 'time' in df.columns:
+        df['time'] = pd.to_datetime(df['time'])
+
+    # -------------------------------------------------------------------------
+    # STEP 1: SESSION-FILTERED TRAINING DATA (PHASE 3 OPTIMIZATION)
+    # -------------------------------------------------------------------------
+    if timeframe != "1d" and 'time' in df.columns:
+        hours = df['time'].dt.hour
+        mask = None
+        if "EURUSD" in symbol:
+            mask = (hours >= 7) & (hours <= 17)
+        elif "GBPUSD" in symbol:
+            mask = (hours >= 7) & (hours <= 16)
+        elif "USDJPY" in symbol:
+            mask = ((hours >= 0) & (hours <= 9)) | ((hours >= 13) & (hours <= 17))
+            
+        if mask is not None:
+            df = df[mask].reset_index(drop=True)
+            print(f"Applied {symbol} session filter ({timeframe}): Kept {len(df)} rows")
+    # -------------------------------------------------------------------------
     
     # Process
     try:
@@ -881,11 +956,13 @@ if __name__ == "__main__":
         for asset, details in assets_conf.items():
             for tf in details.get('timeframes', []):
                 # Map timeframe codes to suffix codes used in datasets
-                tf_map = {'daily': '1d', '4h': '4h', '1h': '1h', '15m': '15m'}
+                tf_map = {'daily': '1d', '4h': '4h', '1h': '1h'}
                 tf_code = tf_map.get(tf, tf)
                 
-                data_path = f"data/{asset}_history.csv"
-                if asset == "XAUUSD": data_path = "data/XAUUSD_history.csv"
+                data_path = f"data/{asset}_{tf_code}.csv"
+                if not os.path.exists(data_path):
+                    # Fallback for old naming
+                    data_path = f"data/{asset}_history.csv"
                 
                 if not os.path.exists(data_path):
                     print(f"Skipping {asset} {tf}: {data_path} not found.")

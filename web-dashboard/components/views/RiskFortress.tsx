@@ -3,20 +3,11 @@
 import { GlassCard } from "@/components/ui/GlassCard";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Shield, TrendingUp, TrendingDown } from "lucide-react";
+import { Shield, TrendingUp, TrendingDown, RotateCw } from "lucide-react";
+import { useApex } from "@/context/ApexContext";
+import { useState } from "react";
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
-
-const currencyStrength = [
-  { currency: "USD", strength: 72, trend: "up",   flag: "🇺🇸" },
-  { currency: "GBP", strength: 61, trend: "up",   flag: "🇬🇧" },
-  { currency: "AUD", strength: 55, trend: "up",   flag: "🇦🇺" },
-  { currency: "CHF", strength: 50, trend: "flat", flag: "🇨🇭" },
-  { currency: "NZD", strength: 44, trend: "down", flag: "🇳🇿" },
-  { currency: "CAD", strength: 40, trend: "down", flag: "🇨🇦" },
-  { currency: "EUR", strength: 33, trend: "down", flag: "🇪🇺" },
-  { currency: "JPY", strength: 22, trend: "down", flag: "🇯🇵" },
-];
 
 const correlationData = [
   ["",        "XAUUSD", "EURUSD", "GBPUSD", "USDJPY"],
@@ -41,84 +32,113 @@ const riskRules = [
   { rule: "Drawdown Safety Mode", limit: "-5.00%", current: "-0.42%", safe: true },
 ];
 
-// ── SUB-COMPONENTS ────────────────────────────────────────────────────────────
-
 function CorrelationCell({ value }: { value: number }) {
-  if (value === 1) return <div className="text-center text-[10px] font-black text-foreground/20">—</div>;
+  if (value === 1) return <div className="text-center text-[10px] font-black text-foreground/10">1.0</div>;
   const color =
     value > 0.7  ? "text-bear"       :
     value > 0.4  ? "text-yellow-400" :
     value < -0.7 ? "text-blue-400"   :
     "text-bull";
-  return <div className={cn("text-center text-[9px] font-bold tabular-nums", color)}>{value.toFixed(2)}</div>;
+  return <div className={cn("text-center text-[10px] font-institutional font-black tabular-nums", color)}>{value.toFixed(2)}</div>;
 }
 
 function CurrencyStrengthMeter() {
-  const max = Math.max(...currencyStrength.map(c => c.strength));
+  const { liveData, triggerCSMRefresh } = useApex();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Parse live CSM data
+  const rawCsm = liveData?.market_context?.csm || { USD: 5, EUR: 5, GBP: 5, JPY: 5, AUD: 5, CAD: 5, CHF: 5, NZD: 5 };
+  const currencyStrength = Object.entries(rawCsm).map(([currency, strength]: [string, any]) => ({
+    currency,
+    strength: parseFloat(strength.toFixed(1)),
+    flag: currency === "USD" ? "🇺🇸" : currency === "GBP" ? "🇬🇧" : currency === "AUD" ? "🇦🇺" : currency === "CHF" ? "🇨🇭" : currency === "NZD" ? "🇳🇿" : currency === "CAD" ? "🇨🇦" : currency === "EUR" ? "🇪🇺" : "🇯🇵"
+  })).sort((a, b) => b.strength - a.strength);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await triggerCSMRefresh?.();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const HeaderExtra = (
+    <button 
+      onClick={handleRefresh}
+      disabled={isRefreshing}
+      className={cn(
+        "flex items-center gap-2 px-3 py-1 rounded-lg border border-white/5 bg-white/5 hover:bg-white/10 transition-all group",
+        isRefreshing && "opacity-50 cursor-not-allowed"
+      )}
+    >
+      <RotateCw className={cn("w-3 h-3 text-primary transition-transform duration-700", isRefreshing && "animate-spin")} />
+      <span className="text-[9px] font-black uppercase tracking-widest text-primary/80 group-hover:text-primary">Quick Refresh</span>
+    </button>
+  );
+
   return (
-    <GlassCard title="Currency Strength Meter" subtitle="8-Major Relative Strength (NLP + Cross-Pair)" glowColor="primary">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-3 mt-4">
+    <GlassCard 
+      title="Currency Strength Meter" 
+      subtitle="Institutional Capital Flow Analysis" 
+      glowColor="primary"
+      headerExtra={HeaderExtra}
+    >
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-12 gap-y-6 mt-6">
         {currencyStrength.map((cur, i) => {
-          const pct = (cur.strength / max) * 100;
-          const isStrong = cur.strength >= 55;
-          const isWeak   = cur.strength <= 40;
-          const barColor = isStrong ? "bg-bull" : isWeak ? "bg-bear" : "bg-yellow-400";
-          const textColor = isStrong ? "text-bull" : isWeak ? "text-bear" : "text-yellow-400";
+          const isStrong = cur.strength > 6.5;
+          const isWeak   = cur.strength < 3.5;
+          const barColor = isStrong ? "bg-bull shadow-[0_0_10px_rgba(0,230,118,0.3)]" : isWeak ? "bg-bear shadow-[0_0_10px_rgba(255,82,82,0.3)]" : "bg-primary/40";
+          const textColor = isStrong ? "text-bull" : isWeak ? "text-bear" : "text-white/60";
+          const progress = (cur.strength / 10) * 100;
+
           return (
             <motion.div
               key={cur.currency}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.07 }}
-              className="flex items-center gap-3 min-w-0"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="flex flex-col gap-2 group"
             >
-              {/* Currency label */}
-              <div className="flex items-center gap-1 w-16 flex-shrink-0">
-                <span className="text-base leading-none">{cur.flag}</span>
-                <span className={cn("text-[10px] font-black tracking-wider", textColor)}>{cur.currency}</span>
-              </div>
-
-              {/* Bar */}
-              <div className="flex-1 min-w-0">
-                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 1.1, delay: i * 0.07, ease: [0.23, 1, 0.32, 1] }}
-                    className={cn("h-full rounded-full", barColor)}
-                  />
+              <div className="flex justify-between items-end px-0.5">
+                <div className="flex items-center gap-2">
+                   <span className="text-[10px] font-black tracking-widest text-foreground/90 uppercase">{cur.currency}</span>
+                   <span className="text-[10px] opacity-40">{cur.flag}</span>
                 </div>
+                <span className={cn("text-[11px] font-institutional font-black tabular-nums tracking-tighter", textColor)}>{cur.strength.toFixed(1)}</span>
               </div>
 
-              {/* Score + trend */}
-              <div className="flex items-center gap-1 w-14 flex-shrink-0 justify-end">
-                <span className={cn("text-[9px] font-black tabular-nums", textColor)}>{cur.strength}</span>
-                {cur.trend === "up"
-                  ? <TrendingUp className="w-3 h-3 text-bull flex-shrink-0" />
-                  : cur.trend === "down"
-                  ? <TrendingDown className="w-3 h-3 text-bear flex-shrink-0" />
-                  : <span className="text-[8px] text-muted-foreground">—</span>
-                }
+              <div className="h-[3px] w-full bg-white/[0.03] rounded-full overflow-hidden relative border border-white/5">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 1.5, delay: i * 0.1, ease: "circOut" }}
+                  className={cn("h-full rounded-full transition-all duration-700", barColor)}
+                />
               </div>
             </motion.div>
           );
         })}
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 mt-4 pt-3 border-t border-white/5">
-        <span className="flex items-center gap-1.5 text-[8px] text-muted-foreground">
-          <span className="w-2 h-2 rounded-full bg-bull inline-block" />Strong (&gt;55)
-        </span>
-        <span className="flex items-center gap-1.5 text-[8px] text-muted-foreground">
-          <span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" />Neutral (41–54)
-        </span>
-        <span className="flex items-center gap-1.5 text-[8px] text-muted-foreground">
-          <span className="w-2 h-2 rounded-full bg-bear inline-block" />Weak (&lt;40)
-        </span>
-        <span className="ml-auto text-[8px] text-primary font-bold">
-          Best Long Pair: USD/JPY · EUR/JPY
-        </span>
+      <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/[0.04]">
+        <div className="flex gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-bull" />
+            <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Expansion</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+            <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Compression</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-bear" />
+            <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Contraction</span>
+          </div>
+        </div>
+        <div className="text-[9px] font-institutional font-black text-primary/80 uppercase tracking-[0.1em] px-3 py-1 rounded-lg bg-primary/5 border border-primary/10">
+          Cycle State: {currencyStrength[0].currency} Momentum Lead
+        </div>
       </div>
     </GlassCard>
   );
@@ -160,12 +180,12 @@ export function RiskFortress() {
 
         {/* Correlation Matrix */}
         <GlassCard title="Asset Correlation Matrix" subtitle="Exposure Overlap Detection">
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-[9px] border-separate border-spacing-0">
+          <div className="mt-6 overflow-x-auto custom-scrollbar">
+            <table className="w-full text-[10px] border-separate border-spacing-0">
               <thead>
-                <tr className="">
+                <tr>
                   {correlationData[0].map((cell, ci) => (
-                    <th key={ci} className="px-2 py-2 font-black text-muted-foreground text-[8px] text-center uppercase tracking-wider">
+                    <th key={ci} className="px-3 py-3 font-black text-white/20 text-[8px] text-center uppercase tracking-[0.2em] border-b border-white/5">
                       {cell as string}
                     </th>
                   ))}
@@ -173,17 +193,17 @@ export function RiskFortress() {
               </thead>
               <tbody>
                 {correlationData.slice(1).map((row, ri) => (
-                  <tr key={ri} className="border-t border-white/5">
+                  <tr key={ri} className="group hover:bg-white/[0.02] transition-colors">
                     {row.map((cell, ci) => (
                       <td
                         key={ci}
                         className={cn(
-                          "px-2 py-2",
-                          ci === 0 ? "font-black text-muted-foreground text-[8px] text-center" : ""
+                          "px-3 py-3 border-b border-white/[0.03]",
+                          ci === 0 ? "font-black text-white/40 text-[8px] text-center uppercase tracking-wider bg-white/[0.01]" : ""
                         )}
                       >
                         {ci === 0
-                          ? <div className="text-center">{cell as string}</div>
+                          ? cell as string
                           : <CorrelationCell value={cell as number} />
                         }
                       </td>
@@ -192,60 +212,66 @@ export function RiskFortress() {
                 ))}
               </tbody>
             </table>
-            <div className="mt-3 flex flex-wrap gap-3 justify-center text-[7px] text-muted-foreground">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-bear" /> High Positive (&gt;0.7)</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400" /> High Negative (&lt;-0.7)</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-bull" /> Low / Safe</span>
+            <div className="mt-5 flex flex-wrap gap-4 justify-center">
+              <span className="flex items-center gap-2 text-[7px] font-black text-white/20 uppercase tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-bear" /> High Positive
+              </span>
+              <span className="flex items-center gap-2 text-[7px] font-black text-white/20 uppercase tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" /> High Negative
+              </span>
+              <span className="flex items-center gap-2 text-[7px] font-black text-white/20 uppercase tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-bull" /> Optimized
+              </span>
             </div>
           </div>
         </GlassCard>
 
         {/* Kelly Engine */}
         <GlassCard title="Kelly Criterion Engine" subtitle="Optimal Position Sizing">
-          <div className="flex flex-col gap-4 mt-4">
+          <div className="flex flex-col gap-6 mt-6">
             {/* Kelly circle */}
-            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 text-center">
-              <div className="text-[8px] text-muted-foreground uppercase tracking-widest mb-1">Kelly Fraction</div>
-              <div className="text-4xl font-black text-primary tabular-nums">{(kellyFraction * 100).toFixed(0)}%</div>
-              <div className="text-[8px] text-muted-foreground mt-1">of Equity Per Trade</div>
-              <div className="mt-2 text-[9px] font-bold text-foreground/50">
-                → Recommended Lot: <span className="text-primary">0.08</span> on $10K
+            <div className="p-6 rounded-[2rem] bg-primary/[0.03] border border-primary/10 text-center relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-3xl rounded-full" />
+              <div className="text-[9px] text-primary/40 font-black uppercase tracking-[0.2em] mb-2">Target Exposure</div>
+              <div className="text-5xl font-institutional font-black text-primary tabular-nums tracking-tighter">{(kellyFraction * 100).toFixed(0)}%</div>
+              <div className="text-[8px] text-white/20 mt-2 uppercase font-bold tracking-widest">Equity Utilization</div>
+              <div className="mt-4 text-[10px] font-black text-foreground/60">
+                LOT RECOMMENDATION: <span className="text-primary tracking-tighter">0.08 / $10K</span>
               </div>
             </div>
 
             {/* Portfolio risk bar */}
-            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
-              <div className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-3">Live Portfolio Risk</div>
-              <div className="space-y-2 mb-3">
+            <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 shadow-inner">
+              <div className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-4">Risk Distribution</div>
+              <div className="space-y-3 mb-4">
                 {[
-                  { label: "Active Positions", value: "2", color: "text-foreground" },
+                  { label: "Active Positions", value: "2", color: "text-foreground/80" },
                   { label: "Total Risk Exposed", value: `${totalRiskPct}%`, color: "text-yellow-400" },
                   { label: "Remaining Allowance", value: `${(2 - totalRiskPct).toFixed(1)}%`, color: "text-bull" },
                 ].map(m => (
-                  <div key={m.label} className="flex justify-between text-[9px]">
-                    <span className="text-muted-foreground">{m.label}</span>
-                    <span className={cn("font-bold", m.color)}>{m.value}</span>
+                  <div key={m.label} className="flex justify-between text-[10px] font-bold">
+                    <span className="text-white/30 uppercase tracking-tight">{m.label}</span>
+                    <span className={cn("tabular-nums", m.color)}>{m.value}</span>
                   </div>
                 ))}
               </div>
-              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden relative">
                 <motion.div
                   animate={{ width: `${(totalRiskPct / 2) * 100}%` }}
-                  transition={{ duration: 1.2 }}
-                  className="h-full bg-yellow-400 rounded-full"
+                  transition={{ duration: 1.5, ease: "circOut" }}
+                  className="h-full bg-gradient-to-r from-bull to-yellow-400 rounded-full"
                 />
               </div>
             </div>
 
             {/* Safety rules */}
-            <div>
-              <div className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-2">Safety Rules</div>
+            <div className="space-y-1">
               {riskRules.map((rule, i) => (
-                <div key={i} className="flex items-center justify-between py-1.5 border-b border-white/[0.04] last:border-0">
-                  <span className="text-[8px] text-muted-foreground truncate mr-2">{rule.rule}</span>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <span className="text-[8px] text-foreground/40 tabular-nums">{rule.current}/{rule.limit}</span>
-                    <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", rule.safe ? "bg-bull" : "bg-bear")} />
+                <div key={i} className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-white/[0.02] transition-colors">
+                  <span className="text-[9px] font-bold text-white/40 uppercase tracking-tight">{rule.rule}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[9px] font-institutional font-black text-foreground/40 tabular-nums tracking-tighter">{rule.current} / {rule.limit}</span>
+                    <div className={cn("w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(var(--color),0.5)]", rule.safe ? "bg-bull" : "bg-bear")} />
                   </div>
                 </div>
               ))}
@@ -255,18 +281,18 @@ export function RiskFortress() {
 
         {/* Drawdown Safeguard */}
         <GlassCard title="Drawdown Safeguard" subtitle="Equity Protection System" glowColor="primary">
-          <div className="flex flex-col gap-4 mt-4">
+          <div className="flex flex-col gap-6 mt-6">
             {/* DD stats grid */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Daily DD",      value: "-0.42%", safe: true },
-                { label: "Weekly DD",     value: "-1.20%", safe: true },
-                { label: "Max DD Limit",  value: "-5.00%", safe: true },
-                { label: "Safety Mode",   value: "OFF",    safe: true },
+                { label: "DAILY_DD",      value: "-0.42%", safe: true },
+                { label: "WEEKLY_DD",     value: "-1.20%", safe: true },
+                { label: "MAX_LIMIT",     value: "-5.00%", safe: true },
+                { label: "SAFEGUARD",     value: "STABLE", safe: true },
               ].map((m, i) => (
-                <div key={i} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-center">
-                  <div className="text-[7px] text-muted-foreground mb-1">{m.label}</div>
-                  <div className={cn("text-sm font-black tabular-nums", m.safe ? "text-bull" : "text-bear")}>
+                <div key={i} className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 flex flex-col items-center justify-center gap-1 shadow-sm">
+                  <div className="text-[7px] font-black text-white/20 uppercase tracking-[0.2em]">{m.label}</div>
+                  <div className={cn("text-[12px] font-institutional font-black tabular-nums tracking-tighter", m.safe ? "text-bull" : "text-bear")}>
                     {m.value}
                   </div>
                 </div>
@@ -274,31 +300,33 @@ export function RiskFortress() {
             </div>
 
             {/* Mini bar chart */}
-            <div>
-              <div className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-2">4-Day DD History</div>
-              <div className="flex items-end gap-2 h-14">
+            <div className="p-4 rounded-2xl bg-black/20 border border-white/5">
+              <div className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] mb-4 text-center">Exposure Volatility (4D)</div>
+              <div className="flex items-end gap-3 h-16 px-2">
                 {drawdownHistory.map((d, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${(d.dd / 2.5) * 100}%` }}
-                      transition={{ duration: 0.8, delay: i * 0.1 }}
-                      className={cn("w-full rounded-t", d.dd > 1.5 ? "bg-bear/50" : "bg-bull/50")}
-                    />
-                    <span className="text-[6px] text-muted-foreground">{d.date.replace("Mar ", "")}</span>
-                    <span className={cn("text-[7px] font-bold", d.dd > 1.5 ? "text-bear" : "text-bull")}>-{d.dd}%</span>
+                  <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+                    <div className="relative w-full flex flex-col items-center justify-end h-full">
+                       <motion.div
+                         initial={{ height: 0 }}
+                         animate={{ height: `${(d.dd / 2.5) * 100}%` }}
+                         transition={{ duration: 1.2, delay: i * 0.1, ease: "circOut" }}
+                         className={cn("w-full rounded-t-lg transition-all group-hover:brightness-125 shadow-[0_0_15px_rgba(var(--c),0.2)]", d.dd > 1.5 ? "bg-bear/40" : "bg-bull/40")}
+                       />
+                    </div>
+                    <span className="text-[7px] font-black text-white/20 uppercase tabular-nums">{d.date.split(" ")[1]}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Safeguard status banner */}
-            <div className="p-3 rounded-xl bg-bull/5 border border-bull/20 flex items-start gap-2">
-              <Shield className="w-3.5 h-3.5 text-bull flex-shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-bull/5 border border-bull/10 flex items-start gap-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-12 h-12 bg-bull/5 blur-2xl rounded-full" />
+              <Shield className="w-5 h-5 text-bull flex-shrink-0 mt-0.5 opacity-50" />
               <div>
-                <div className="text-[8px] font-black text-bull uppercase tracking-widest mb-1">Safeguard Active</div>
-                <p className="text-[7px] text-muted-foreground leading-relaxed">
-                  All parameters within safe zone. Auto-close triggers at -5% DD. Monitoring 24/7.
+                <div className="text-[9px] font-black text-bull uppercase tracking-[0.2em] mb-1">Protection Uplink Active</div>
+                <p className="text-[8px] text-white/40 leading-relaxed font-bold tracking-tight uppercase">
+                  All systems nominal. Automated liquidation protocol armed at -5% threshold.
                 </p>
               </div>
             </div>

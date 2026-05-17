@@ -13,6 +13,7 @@ const AssetHeatmap = dynamic(() => import("@/components/modules/AssetHeatmap").t
 const TradingViewChart = dynamic(() => import("@/components/TradingViewChart"), { ssr: false });
 const MultiTimeframeStatus = dynamic(() => import("@/components/modules/MultiTimeframeStatus").then(m => m.MultiTimeframeStatus), { ssr: false });
 const VerifiedNewsList = dynamic(() => import("@/components/VerifiedNewsList"), { ssr: false });
+const PipelineStatusBar = dynamic(() => import("@/components/modules/PipelineStatusBar").then(m => m.PipelineStatusBar), { ssr: false });
 
 const WorldMonitor = dynamic(() => import("@/components/views/WorldMonitor").then(m => m.WorldMonitor), {
   loading: () => <div className="flex-1 flex items-center justify-center bg-black text-primary font-black animate-pulse uppercase tracking-widest text-xs">UPLINKING_WORLD_MAP...</div>,
@@ -34,10 +35,19 @@ const MT5Execution = dynamic(() => import("@/components/views/MT5Execution").the
   ssr: false
 });
 
+const SMCEngineView = dynamic(() => import("@/components/views/SMCEngineView").then(m => m.SMCEngineView), {
+  loading: () => <div className="flex-1 flex items-center justify-center bg-black text-primary font-black animate-pulse uppercase tracking-widest text-xs">LOADING_SMC_ENGINE...</div>,
+  ssr: false
+});
+
+const Opportunities = dynamic(() => import("@/components/views/Opportunities"), {
+  loading: () => <div className="flex-1 flex items-center justify-center bg-black text-primary font-black animate-pulse uppercase tracking-widest text-xs">CALIBRATING_TARGET_GRIDS...</div>,
+  ssr: false
+});
+
 function IntelligenceDashboard() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-transparent">
-      <DashboardHeader />
       
       <main className="flex-1 p-6 lg:p-8 flex gap-6 overflow-hidden">
         
@@ -68,6 +78,8 @@ function IntelligenceDashboard() {
 
       </main>
       
+      <PipelineStatusBar />
+
       <div className="fixed bottom-6 right-10 pointer-events-none opacity-30 select-none">
          <span className="text-[9px] font-bold text-white uppercase tracking-[0.5em]">APEX TRADE AI V2.5.0 ELITE</span>
       </div>
@@ -95,13 +107,19 @@ export default function DashboardPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {(activeTab === "dashboard" || activeTab === "opps" || activeTab === "flow" || activeTab === "analytics") && (
-          <IntelligenceDashboard />
-        )}
+        <DashboardHeader />
+        
+        <div className="flex-1 overflow-hidden">
+          {(activeTab === "dashboard" || activeTab === "analytics") && (
+            <IntelligenceDashboard />
+          )}
+        {activeTab === "opps"      && <Opportunities />}
         {activeTab === "world"     && <WorldMonitor />}
         {activeTab === "risk"      && <RiskFortress />}
         {activeTab === "ledger"    && <VerificationLedger />}
         {activeTab === "execution" && <MT5Execution />}
+        {activeTab === "smc"       && <SMCEngineView />}
+        </div>
     </div>
   );
 }

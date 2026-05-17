@@ -41,15 +41,16 @@ class NewsManager:
         for e in all_events:
             # Filter by Currency
             if e.get('country') in currencies:
-                # Filter by Impact
-                if e.get('impact') in ['High', 'Medium']:
+                # Filter by Impact (Including Holidays which are critical for market conditions)
+                if e.get('impact') in ['High', 'Medium', 'Low', 'Holiday']:
                     filtered.append({
                         'time': e.get('date'),
                         'currency': e.get('country'),
                         'event': e.get('title'),
                         'impact': e.get('impact'),
                         'actual': e.get('actual', ''),
-                        'forecast': e.get('forecast', '')
+                        'forecast': e.get('forecast', ''),
+                        'previous': e.get('previous', '')
                     })
         
         # Sort by time (descending or ascending? dashboard usually wants recent)

@@ -14,7 +14,10 @@ export type DataSourceId =
   | 'geo_convergence'
   | 'market_data'
   | 'weather'
-  | 'earthquake';
+  | 'earthquake'
+  | 'maritime'
+  | 'aviation'
+  | 'conflict_monitor';
 
 export type FreshnessStatus = 'fresh' | 'stale' | 'very_stale' | 'no_data' | 'error';
 
@@ -55,6 +58,9 @@ const SOURCE_META: Record<DataSourceId, { name: string; requiredForRisk: boolean
   market_data:       { name: 'Market Data Feed',       requiredForRisk: false },
   weather:           { name: 'Weather Alerts',         requiredForRisk: false },
   earthquake:        { name: 'Seismic Monitor',        requiredForRisk: false },
+  maritime:          { name: 'Maritime Surveillance',  requiredForRisk: true  },
+  aviation:          { name: 'Aviation Surveillance',  requiredForRisk: true  },
+  conflict_monitor:  { name: 'Conflict Monitor',      requiredForRisk: true  },
 };
 
 const GAP_MESSAGES: Record<DataSourceId, string> = {
@@ -67,6 +73,9 @@ const GAP_MESSAGES: Record<DataSourceId, string> = {
   market_data:       'Market data feed offline — volatility signals unavailable',
   weather:           'Weather alerts unavailable — severe weather events may be missed',
   earthquake:        'Seismic monitor offline — earthquake events undetected',
+  maritime:          'Maritime surveillance offline — global vessel tracking lost',
+  aviation:          'Aviation surveillance offline — global air traffic tracking lost',
+  conflict_monitor:  'Conflict monitor offline — verified conflict events unavailable',
 };
 
 class DataFreshnessTracker {

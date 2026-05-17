@@ -54,6 +54,8 @@ class NewsScraper:
                  pass
             
             current_date = ""
+            current_currency = ""
+            current_time = ""
             
             for row in rows:
                 try:
@@ -84,25 +86,33 @@ class NewsScraper:
                              pass
                     
                     if not current_date:
-                        # Skip until we have a date state
-                        # print(f"No Date State. Row class: {row.get_attribute('class')}")
-                        continue               # Currency
+                        continue
+                    # Currency
                     try:
-                        currency = row.find_element(By.CLASS_NAME, "calendar__currency").text.strip()
+                        curr_text = row.find_element(By.CLASS_NAME, "calendar__currency").text.strip()
+                        if curr_text:
+                            current_currency = curr_text
                     except:
-                        currency = "" # Some rows might be detail rows?
+                        pass
                     
-                    if not currency: 
-                        # print("No Currency.")
+                    if not current_currency: 
                         continue 
                     
                     # print(f"Processing: {current_date} {currency}") 
 
                     # Time
                     try:
-                        time_str = row.find_element(By.CLASS_NAME, "calendar__time").text.strip()
+                        time_text = row.find_element(By.CLASS_NAME, "calendar__time").text.strip()
+                        if time_text:
+                            if "All Day" in time_text:
+                                current_time = "00:00:01" # Start of day
+                            else:
+                                current_time = time_text
                     except:
-                        time_str = "00:00"
+                        pass
+                    
+                    if not current_time:
+                        current_time = "00:00"
 
                     # Event
                     event = row.find_element(By.CLASS_NAME, "calendar__event").text.strip()
@@ -111,22 +121,34 @@ class NewsScraper:
                     impact = "Low"
                     try:
                         impact_elem = row.find_element(By.CLASS_NAME, "calendar__impact").find_element(By.TAG_NAME, "span")
-                        cls = impact_elem.get_attribute("class")
+                        cls = impact_elem.get_attribute("class").lower()
                         if "red" in cls: impact = "High"
                         elif "orange" in cls: impact = "Medium"
+                        elif "grey" in cls or "gray" in cls:
+                            if "Bank Holiday" in event: impact = "Holiday"
+                            else: impact = "Low"
+                        elif "holiday" in cls: impact = "Holiday"
                     except:
                         pass
 
                     # Values
-                    actual = row.find_element(By.CLASS_NAME, "calendar__actual").text.strip()
-                    forecast = row.find_element(By.CLASS_NAME, "calendar__forecast").text.strip()
-                    previous = row.find_element(By.CLASS_NAME, "calendar__previous").text.strip()
+                    try:
+                        actual = row.find_element(By.CLASS_NAME, "calendar__actual").text.strip()
+                    except: actual = ""
                     
-                    full_date_str = f"{current_date} {time_str}"
+                    try:
+                        forecast = row.find_element(By.CLASS_NAME, "calendar__forecast").text.strip()
+                    except: forecast = ""
+                    
+                    try:
+                        previous = row.find_element(By.CLASS_NAME, "calendar__previous").text.strip()
+                    except: previous = ""
+                    
+                    full_date_str = f"{current_date} {current_time}"
                     
                     events.append({
                         "title": event,
-                        "country": currency,
+                        "country": current_currency,
                         "date": full_date_str,
                         "impact": impact,
                         "forecast": forecast,

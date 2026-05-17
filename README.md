@@ -6,15 +6,18 @@
 ![Dashboard Preview](images/csm_page_1765266034599.png)
 
 ## 🏛️ Executive Summary
-**APEX Trade AI** is a high-fidelity **Institutional Intelligence Operating System (IIOS)** engineered to identify liquidity voids and directional bias in global financial markets. By synthesizing real-time macro-sentiment, machine learning probabilistic models, and Smart Money Concept (SMC) heuristics, APEX provides a centralized command interface for professional-grade market navigation.
+**APEX Trade AI** is a high-fidelity **Institutional Intelligence Operating System (IIOS)** engineered for global financial markets. By synthesizing real-time macro-sentiment, ensemble machine learning, and Smart Money Concept (SMC) heuristics, APEX provides a centralized command interface for professional-grade market navigation.
 
-> [!IMPORTANT]
-> **Trust Infrastructure:** All primary analytical insights and trade signals are SHA-256 fingerprinted and anchored on the **Polygon Amoy Testnet** for immutable performance auditing.
+---
+
+## 🏛️ Full System Whitepaper & Audit
+For a deep dive into the mathematical foundations, machine learning ensemble theory, and algorithmic SMC heuristics, please refer to the **Comprehensive 20-Page Technical Whitepaper**:
+
+👉 **[View Full System Audit & Whitepaper](docs/whitepaper/README.md)**
 
 ---
 
 ## 🔄 System Workflow & Architecture
-*Architecture Blueprint (Napkin AI Conceptual Visualized via Mermaid)*
 
 ```mermaid
 graph TD
@@ -41,106 +44,71 @@ graph TD
 
 ---
 
-## 🔬 Mathematical Foundation
+## ⚡ Deployment & Reliability
 
-### 1. Deterministic Risk: The Kelly Criterion
-The system optimizes position sizing using a modified Kelly Criterion to maximize logarithmic growth of the bankroll while mitigating the risk of ruin:
-$$f^* = \frac{p(b+1) - 1}{b}$$
-*Where:*
-- $f^*$: The optimal fraction of the bankroll to risk.
-- $p$: Probability of win (sourced from the Neural Confluence confidence score).
-- $b$: Payoff odds (Calculated Reward-to-Risk ratio).
+### Production (Windows Service via NSSM)
+The APEX pipeline runs as a **resilient Windows Service** that starts automatically on boot, survives log-off/sleep, and self-heals by auto-restarting on crashes.
 
-### 2. Neural Confluence: Gradient Boosting Logic
-Our directional bias is refined through an **XGBoost** objective function that minimizes log-loss while penalizing complexity (L1/L2 regularization) to prevent over-fitting in highly volatile market environments:
-$$\text{Obj}(\theta) = \sum_{i} l(y_i, \hat{y}_i) + \sum_{k} \Omega(f_k)$$
-The system achieves precision by ensuring **Probability $\ge 80\%$** before escalating to a "High Confluence" signal state.
+**Start the Pipeline Service:**
+```powershell
+Start-Service ApexTradingPipeline
+```
 
----
+**Check Status:**
+```powershell
+Get-Service ApexTradingPipeline
+# Or view Dashboard: BottomStatus bar shows 🟢 HEALTHY / 🟡 DEGRADED / 🔴 ERROR
+```
 
-## 📟 Live Terminal Preview
-*Real-time trace of the APEX Analytical Engine (Simulation)*
+**View Deployment Logs:**
+```powershell
+# Real-time tail of the pipeline runner
+Get-Content logs/pipeline.log -Wait -Tail 50
+```
 
-```bash
-[14:22:01] INF: Initializing Market Uplink... MT5 CONNECTED.
-[14:22:05] INTEL: XAUUSD (GOLD) Detects Liquidity Void @ 2145.50 - 2148.00
-[14:22:10] SMC: Market Structure Shift (MSS) Detected (15m Timeframe)
-[14:22:15] ML: XGBoost Signal [BULLISH] | LSTM Confidence [89.4%]
-[14:22:20] MAC: Multi-Asset Consensus Score: 92.4 (Rank #1)
-[14:22:25] LEDGER: Anchoring Insight Hash to Polygon... TX: 0xf9a3...d71e
-[14:22:30] STATUS: Opportunity Runway UPDATED. Strategy: [STRONG BUY]
+**Reload After Config Change:**
+```powershell
+Restart-Service ApexTradingPipeline
 ```
 
 ---
 
-## 🚀 Key Intelligence Modules
+## ⏱️ Session-Aware Refresh Cadence
+The pipeline automatically scales its heartbeat based on global market sessions (configured in `src/config/config.yaml`).
 
-### 🏛️ Smart Money Concepts (SMC) Engine
-*   **Order Block Localization**: Identifies institutional supply/demand zones through automated price-action profiling.
-*   **Market Structure Shifts (MSS)**: pinpoints the exact moment high-timeframe trend inertia transitions into actionable entry setups.
-*   **Fair Value Gaps (FVG)**: Monitors price imbalances as magnets for future liquidation and rebalancing.
-
-### 🧠 Tactical News Oracle
-*   **Sentiment Decay Models**: Implements an exponential decay function ($e^{-\lambda t}$) ensuring that breaking macro-events exert a higher influence than stale historical records.
-*   **Asset-Specific Anchoring**: Differentiates between Base-rate events and Quote-currency shocks (e.g., distinguishing CPI impacts on EUR vs USD).
-
----
-
-## ⚡ Quick-Start API Reference
-The APEX Backend provides a RESTful interface for external tool integration.
-
-### **GET /api/predict_all**
-Returns the current prioritized "Opportunity Runway".
-```json
-{
-  "assets": {
-    "XAUUSD": {
-      "bias": "BULLISH",
-      "confidence": 0.912,
-      "levels": { "tp": 2240.5, "sl": 2195.2 },
-      "smc": { "ob_found": true, "mss": "Confirmed" }
-    }
-  },
-  "ranking": [ "XAUUSD", "EURUSD" ]
-}
-```
+| Session | Time (UTC) | Refresh Interval |
+| :--- | :--- | :--- |
+| **Asian** | 00:00 - 08:00 | Every 15 min |
+| **London** | 08:00 - 13:00 | Every 10 min |
+| **Overlap (Peak)**| **13:00 - 17:00** | **Every 5 min** |
+| **New York** | 17:00 - 22:00 | Every 10 min |
+| **Off-Hours** | 22:00 - 00:00 | Every 15 min |
 
 ---
 
-## 📁 Project Hierarchy
-| Directory | Purpose |
-| :--- | :--- |
-| **`web-dashboard/`** | Next.js 15+ Institutional Command Terminal |
-| **`src/`** | Core Predictive Engines & SMC Logic |
-| **`tools/`** | Data Ingestion & Backtesting Pipelines |
-| **`docs/`** | Institutional Audits & PDF SitReps |
-| **`outputs/`** | Validated Intelligence Artifacts (JSON) |
-| **`logs/`** | Deterministic Run-time Audit Logs |
+## 🚨 Real-time Observability & Alerts
+The system includes a production-grade monitoring stack out of the box.
+
+*   **Safe Mode**: If MT5 disconnects, the system enters `DEGRADED` mode, preserving the last valid signal instead of crashing.
+*   **Webhook Alerts**: Supports Slack/Teams notifications for persistent failures.
+    - Set `APEX_ALERT_WEBHOOK` environment variable via NSSM.
+    - `nssm set ApexTradingPipeline AppEnvironmentExtra "APEX_ALERT_WEBHOOK=https://hooks.slack.com/..."`
+*   **Recovery Alerts**: Automatically notifies you when a failing pipeline self-heals.
+*   **Verification CLI**: Run `python -m src.pipeline.health --test-alert` to verify your webhook instantly.
 
 ---
 
-## 🗺️ 2026 Development Roadmap
+## 🧬 Intelligence Modules
 
-### **Phase 4: HFT & Specialized Execution**
-- Integration of FPGA-accelerated price-action feeds.
-- Sub-millisecond latency optimization for scalp-mode execution.
-
-### **Phase 5: Decentralized Intelligence (DAO)**
-- Implementation of Federated Model Training via the APEX DAO.
-- Federated model checkpoints anchored on Celestia or Avail for data availability.
-
----
-
-## 🛠️ Contribution & Development
-We maintain institutional-grade code quality. All pull requests must:
-1.  **Pass Model Validation**: Precision must exceed 80% on out-of-sample data.
-2.  **Linting**: Adhere to PEP8 (Python) and ESLint (Next.js) standards.
-3.  **Audit**: New analytical modules must include a deterministic hashing verification test.
+- **Smart Money Concepts (SMC)**: Automated localization of Order Blocks (OB), Fair Value Gaps (FVG), and Market Structure Shifts (MSS).
+- **Neural Confluence**: Blended XGBoost + LSTM ensemble with a deterministic **80% probability threshold**.
+- **Kelly Criterion**: Dynamic position sizing based on real-time win probability and Reward-to-Risk.
+- **Blockchain Verified**: Every high-confluence signal is SHA-256 fingerprinted and anchored on the **Polygon Amoy Testnet** for transparency.
 
 ---
 
 ### 🏛️ Security & Audit Transparency
-All signals are verified through the **Polygon Amoy Proof-of-Signal** service. Performance history is immutable, ensuring that the APEX Ledger cannot be back-dated or altered post-execution.
+Performance history is immutable. The APEX Ledger ensures that past signals cannot be altered, providing a verifiable record of institutional alpha.
 
 ---
-*Powered by Aditya | APEX Intelligence Engine*
+*Powered by Aditya | APEX Intelligence Engine v2.5.0 Elite*

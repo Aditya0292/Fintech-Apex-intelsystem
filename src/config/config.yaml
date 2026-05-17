@@ -2,6 +2,9 @@
 
 data:
   base_dir: "data"
+  active_provider: "mt5"  # Options: [mt5, yfinance]
+  symbol_map:
+    XAUUSD: "GC=F"       # Map standard symbol to provider ticker (e.g. YFinance Gold Futures)
   history_file: "XAUUSD_history.csv"
   dxy_file: "dxy_history.csv"
   news_file: "news_sentiment.csv"
@@ -10,7 +13,7 @@ data:
 models:
   model_dir: "saved_models"
   archive_dir: "saved_models/archive"
-  timeframes: ["1d", "4h", "1h", "30m", "15m", "5m"]
+  timeframes: ["1d", "4h", "1h"]
 
 training:
   epochs: 30
@@ -41,6 +44,48 @@ features:
   pivot_types: ["traditional", "fibonacci", "camarilla", "woodie", "demark"]
   schema_path: "src/config/feature_schema_v2.json"
 
+# v5.1 Production Pipeline Settings
+pipeline:
+  session_schedule:
+    asian:
+      utc_start: 0
+      utc_end: 8
+      hot_interval_min: 15
+    london:
+      utc_start: 8
+      utc_end: 13
+      hot_interval_min: 10
+    overlap:
+      utc_start: 13
+      utc_end: 17
+      hot_interval_min: 5
+    new_york:
+      utc_start: 17
+      utc_end: 22
+      hot_interval_min: 10
+    off_hours:
+      utc_start: 22
+      utc_end: 24
+      hot_interval_min: 15
+
+  full_pipeline_times_utc:
+    - "00:00"
+    - "07:00"
+    - "08:00"
+    - "12:30"
+    - "13:00"
+    - "17:00"
+    - "21:00"
+    - "22:00"
+
+  retry:
+    max_attempts: 3
+    delay_sec: 10
+
+  alerts:
+    consecutive_failures_threshold: 3
+    stale_data_alert_min: 90
+
 endpoints:
   azure_openai:
     key_env_var: "AZURE_OPENAI_KEY"
@@ -49,4 +94,3 @@ endpoints:
   azure_anomaly:
     key_env_var: "AZURE_ANOMALY_KEY"
     endpoint_env_var: "AZURE_ANOMALY_ENDPOINT"
-

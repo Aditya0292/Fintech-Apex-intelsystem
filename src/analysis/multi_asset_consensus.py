@@ -96,7 +96,7 @@ class MultiAssetConsensus:
                 score_bar
             ])
             
-        report = "\n   🏆 OPPORTUNITY RUNWAY (Sorted by Confluence Score)\n"
+        report = "\n   [RANKING] OPPORTUNITY RUNWAY (Sorted by Confluence Score)\n"
         report += tabulate(table_data, headers=["Asset", "Action", "Conf", "Score", "Factors (Str/Mom/Mac)", "Rating"], tablefmt="simple")
         
         # Best Pick Details
@@ -106,7 +106,7 @@ class MultiAssetConsensus:
         b_conf = best['confidence']
         b_conf_str = b_conf if isinstance(b_conf, str) else f"{b_conf:.1%}"
         
-        report += f"\n\n   💎 TOP PICK: {best['symbol']} ({best['direction']})\n"
+        report += f"\n\n   [*] TOP PICK: {best['symbol']} ({best['direction']})\n"
         report += f"      Why? High Confidence ({b_conf_str}) & Robust Factors.\n"
         
         return report

@@ -10,9 +10,10 @@ interface GlassCardProps {
   className?: string;
   glowColor?: "primary" | "bull" | "bear";
   noPadding?: boolean;
+  headerExtra?: React.ReactNode;
 }
 
-export function GlassCard({ children, title, subtitle, className, glowColor, noPadding }: GlassCardProps) {
+export function GlassCard({ children, title, subtitle, className, glowColor, noPadding, headerExtra }: GlassCardProps) {
   const glowClasses = {
     primary: "after:bg-primary/5 after:shadow-[0_0_40px_rgba(232,123,69,0.1)]",
     bull: "after:bg-bull/5 after:shadow-[0_0_40px_rgba(0,230,118,0.1)]",
@@ -36,10 +37,11 @@ export function GlassCard({ children, title, subtitle, className, glowColor, noP
       {/* Header */}
       {(title || subtitle) && (
         <div className={cn("px-6 pt-6 pb-2 relative z-10 flex-shrink-0", noPadding && "px-4 pt-4")}>
-          <div className="flex justify-between items-center mb-1 text-center">
+          <div className="flex justify-between items-center mb-1">
              <h3 className="text-[10px] font-bold tracking-[0.1em] text-muted-foreground uppercase font-sans">
                {title}
              </h3>
+             {headerExtra}
           </div>
           {subtitle && (
             <p className="text-[9px] font-bold text-primary/80 uppercase tracking-[0.2em] mt-0.5">{subtitle}</p>

@@ -1,11 +1,11 @@
-import React from 'react';
-import { NewsEvent } from '../types/apex';
+import { NewsEvent, NewsCombatStatus } from '../types/apex';
+ 
+ interface NewsFeedProps {
+   news: NewsEvent[];
+   combatStatus: NewsCombatStatus | null;
+ }
 
-interface NewsFeedProps {
-  news: NewsEvent[];
-}
-
-export default function NewsFeed({ news }: NewsFeedProps) {
+export default function NewsFeed({ news, combatStatus }: NewsFeedProps) {
 
   // Format timestamp nicely
   const formatTime = (isoString: string) => {
@@ -22,6 +22,22 @@ export default function NewsFeed({ news }: NewsFeedProps) {
     <div className="flex flex-col h-full">
       <div className="font-mono text-[9px] tracking-[0.1em] font-bold text-text-secondary mb-3 uppercase px-[14px]">Macro Flow</div>
       
+      {/* COMBAT MODE BANNER */}
+      {combatStatus?.combat_mode && (
+        <div className="mx-[14px] mb-4 bg-terminal-red/10 border border-terminal-red/30 rounded-[3px] p-3 animate-pulse shadow-[0_0_15px_rgba(var(--red-rgb),0.15)]">
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-mono text-[10px] font-bold text-terminal-red tracking-wider uppercase">🔴 News Combat Active</span>
+            <span className="font-mono text-[8px] text-terminal-red/70">5S POLLING</span>
+          </div>
+          <div className="font-sans text-[11px] text-text-primary font-medium">
+            Monitoring: {combatStatus.active_event?.title || 'High Impact Release'}
+          </div>
+          <div className="mt-2 h-[2px] bg-terminal-red/20 w-full rounded-full overflow-hidden">
+            <div className="h-full bg-terminal-red w-1/3 animate-loading-slide" />
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto px-[14px] pb-4 space-y-4">
         {news.map(item => {
           

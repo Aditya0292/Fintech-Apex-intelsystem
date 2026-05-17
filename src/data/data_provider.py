@@ -117,20 +117,24 @@ class DataProvider:
         try:
             root = ET.fromstring(content)
             for item in root.findall('event'):
-                # Combine Date and Time
-                date_str = item.find('date').text
+                # Normalize Date (XML: 04-26-2026) -> YYYY-MM-DD
+                date_text = item.find('date').text
+                try:
+                    dt_obj = datetime.strptime(date_text, "%m-%d-%Y")
+                    date_normalized = dt_obj.strftime("%Y-%m-%d")
+                except:
+                    date_normalized = date_text
+
                 time_str = item.find('time').text
-                dt_str = f"{date_str} {time_str}"
-                
-                # Normalize using util (but here we construct dict first)
+                dt_str = f"{date_normalized} {time_str}"
                 
                 events.append({
                     "title": item.find('title').text,
                     "country": item.find('country').text,
                     "date": dt_str, 
                     "impact": item.find('impact').text,
-                    "forecast": item.find('forecast').text,
-                    "previous": item.find('previous').text,
+                    "forecast": item.find('forecast').text or "",
+                    "previous": item.find('previous').text or "",
                     "actual": item.find('actual').text if item.find('actual') is not None else "",
                     "status": "released" if item.find('actual') is not None and item.find('actual').text else "scheduled"
                 })

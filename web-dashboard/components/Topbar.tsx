@@ -1,4 +1,5 @@
-import React from 'react';
+import { useApex } from '@/context/ApexContext';
+import { Activity, Clock, Zap } from 'lucide-react';
 
 const DUMMY_TICKERS = [
   { symbol: 'XAUUSD', price: '2745.50', change: '+12.4' },
@@ -10,7 +11,8 @@ const DUMMY_TICKERS = [
 ];
 
 export default function Topbar() {
-  const timeStr = "12:45:00 UTC"; // Placeholder
+  const { isScanning, triggerScan, scanInterval, setScanInterval } = useApex();
+  const timeStr = new Date().getUTCHours() + ":" + String(new Date().getUTCMinutes()).padStart(2, '0') + " UTC";
 
   return (
     <div className="h-full w-full bg-terminal-bg-panel border-b border-border flex items-center justify-between px-3 overflow-hidden">
@@ -64,26 +66,50 @@ export default function Topbar() {
         </div>
       </div>
 
-      {/* RIGHT: Status */}
-      <div className="flex items-center justify-end gap-3 w-[180px] shrink-0">
+      {/* RIGHT: Status & Controls */}
+      <div className="flex items-center justify-end gap-4 px-4 shrink-0 border-l border-border/50 bg-black/20 h-full">
+        
+        {/* Frequency Selector */}
         <div className="flex items-center gap-2">
-           <style>{`
-            @keyframes pulseGlow {
-              0% { opacity: 1; }
-              50% { opacity: 0.4; }
-              100% { opacity: 1; }
-            }
-            .animate-pulse-fast {
-              animation: pulseGlow 2s ease-in-out infinite;
-            }
-          `}</style>
-          <div 
-            className="w-[6px] h-[6px] rounded-full bg-terminal-green animate-pulse-fast"
-            style={{ boxShadow: '0 0 6px var(--green)' }}
-          />
-          <span className="font-mono text-[9px] text-text-muted">LIVE: MT5</span>
+          <Clock className="w-3 h-3 text-text-muted" />
+          <select 
+            value={scanInterval}
+            onChange={(e) => setScanInterval(Number(e.target.value))}
+            className="bg-transparent border-none text-[9px] font-mono font-bold text-terminal-gold focus:ring-0 cursor-pointer hover:text-white transition-colors uppercase outline-none"
+          >
+            <option value={5} className="bg-terminal-bg-panel">Interval: 5M</option>
+            <option value={10} className="bg-terminal-bg-panel">Interval: 10M</option>
+            <option value={15} className="bg-terminal-bg-panel">Interval: 15M</option>
+            <option value={30} className="bg-terminal-bg-panel">Interval: 30M</option>
+          </select>
         </div>
-        <div className="font-mono text-[10px] text-text-secondary">{timeStr}</div>
+
+        {/* Scan Button */}
+        <button 
+          onClick={triggerScan}
+          disabled={isScanning}
+          className={`flex items-center gap-2 px-3 py-1 rounded-[1px] transition-all group ${
+            isScanning 
+            ? 'bg-terminal-gold/20 cursor-wait' 
+            : 'bg-terminal-green/10 hover:bg-terminal-green/20'
+          }`}
+        >
+          <Zap className={`w-3 h-3 ${isScanning ? 'text-terminal-gold animate-pulse' : 'text-terminal-green'}`} />
+          <span className={`font-mono text-[9px] font-black uppercase tracking-widest ${
+            isScanning ? 'text-terminal-gold' : 'text-terminal-green'
+          }`}>
+            {isScanning ? 'SCANNING...' : 'TRIGGER SCAN'}
+          </span>
+        </button>
+
+        {/* Live Indicator */}
+        <div className="flex items-center gap-2 border-l border-border/30 pl-4">
+          <div 
+            className={`w-[6px] h-[6px] rounded-full bg-terminal-green ${!isScanning && 'animate-pulse'}`}
+            style={{ boxShadow: isScanning ? 'none' : '0 0 8px var(--green)' }}
+          />
+          <span className="font-mono text-[9px] text-text-muted font-bold tracking-tight">OS: READY</span>
+        </div>
       </div>
 
     </div>

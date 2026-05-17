@@ -22,12 +22,7 @@ daily: # 1d
   internal_length: 3
   movement_threshold_mult: 1.0
 
-15m: # 15 Minute
-  window_size: 100      # Longer window to smooth out noise
-  min_periods: 400
-  swing_length: 20      # Stricter swing definitions to ignore micro-choppiness
-  internal_length: 5
-  movement_threshold_mult: 1.5 # Expect 1.5x ATR move to be considered significant (filter noise)
+
 
 5m: # 5 Minute (Scalping)
   window_size: 200

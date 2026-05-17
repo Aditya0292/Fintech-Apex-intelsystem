@@ -2,9 +2,11 @@
 
 import React, { useEffect, useRef } from "react";
 import { GlassCard } from "./ui/GlassCard";
+import { useApex } from "@/context/ApexContext";
 
 export default function TradingViewChart() {
   const container = useRef<HTMLDivElement>(null);
+  const { activeSymbol } = useApex();
 
   useEffect(() => {
     if (!container.current) return;
@@ -14,12 +16,15 @@ export default function TradingViewChart() {
         container.current.removeChild(container.current.firstChild);
     }
 
+    // Map common symbols to OANDA for consistency
+    const tvSymbol = `OANDA:${activeSymbol}`;
+
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
     script.async = true;
     script.innerHTML = JSON.stringify({
       autosize: true,
-      symbol: "OANDA:XAUUSD",
+      symbol: tvSymbol,
       interval: "15",
       timezone: "Asia/Kolkata",
       theme: "dark",
@@ -41,7 +46,7 @@ export default function TradingViewChart() {
       popup_height: "650"
     });
     container.current.appendChild(script);
-  }, []);
+  }, [activeSymbol]);
 
   return (
     <GlassCard noPadding className="flex-1 min-h-[500px] h-full overflow-hidden relative border-[#1e1e1e]">

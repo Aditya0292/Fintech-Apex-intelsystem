@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, 
-  LineChart, 
   BarChart3, 
   Zap, 
   Settings, 
@@ -27,7 +26,7 @@ const menuItems: { icon: React.ElementType; label: string; id: ActiveTab; badge?
   { icon: Shield,         label: "Risk Fortress",  id: "risk" },
   { icon: Link2,          label: "Verif. Ledger",  id: "ledger" },
   { icon: Radio,          label: "MT5 Execution",  id: "execution", badge: "MT5" },
-  { icon: LineChart,      label: "Order Flow",     id: "flow" },
+  { icon: Zap,            label: "SMC Engine",     id: "smc",     badge: "V8" },
   { icon: BarChart3,      label: "Analytics",      id: "analytics" },
   { icon: Wallet,         label: "Portfolio",      id: "dashboard" },
 ];

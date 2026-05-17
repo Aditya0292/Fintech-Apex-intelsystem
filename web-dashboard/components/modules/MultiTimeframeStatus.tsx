@@ -4,14 +4,37 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
-const tfs = [
-  { label: "1D", status: "BULLISH", value: 85 },
-  { label: "4H", status: "BULLISH", value: 65 },
-  { label: "1H", status: "NEUTRAL", value: 45 },
-  { label: "15M", status: "BEARISH", value: 30 },
-];
+import { useApex } from "@/context/ApexContext";
 
 export function MultiTimeframeStatus() {
+  const { activeSymbol, liveData } = useApex();
+  
+  let tfs = [
+    { label: "1D", status: "NEUTRAL", value: 50 },
+    { label: "4H", status: "NEUTRAL", value: 50 },
+    { label: "1H", status: "NEUTRAL", value: 50 },
+  ];
+  
+  if (liveData && liveData.assets && liveData.assets[activeSymbol]) {
+      const preds = liveData.assets[activeSymbol].predictions || {};
+      tfs = [
+        { 
+          label: "1D", 
+          status: preds["Daily"]?.signal?.toUpperCase() || "NEUTRAL", 
+          value: preds["Daily"]?.confidence ? Math.round(preds["Daily"].confidence * 100) : 50 
+        },
+        { 
+          label: "4H", 
+          status: preds["4 Hour"]?.signal?.toUpperCase() || "NEUTRAL", 
+          value: preds["4 Hour"]?.confidence ? Math.round(preds["4 Hour"].confidence * 100) : 50 
+        },
+        { 
+          label: "1H", 
+          status: preds["1 Hour"]?.signal?.toUpperCase() || "NEUTRAL", 
+          value: preds["1 Hour"]?.confidence ? Math.round(preds["1 Hour"].confidence * 100) : 50 
+        },
+      ];
+  }
   return (
     <GlassCard title="MTF Alignment" subtitle="Timeframe Synergy" className="h-full">
       <div className="flex flex-col gap-6 mt-6">

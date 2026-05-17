@@ -60,6 +60,8 @@ export class DataLoader {
       this.registerStream('CONFLICT_HOTSPOTS', '/api/intelligence/hotspots', 20000);
       this.registerStream('NEWS_FEED', '/api/verified-news', 60000);
       this.registerStream('SITREP_ALERTS', '/api/intelligence/sitrep', 10000);
+      this.registerStream('MARITIME', '/api/intelligence/maritime', 30000);
+      this.registerStream('AVIATION', '/api/intelligence/aviation', 45000);
     }, 500);
   }
 
@@ -146,7 +148,7 @@ export class DataLoader {
   }
 
   private isKnownSource(id: string): id is DataSourceId {
-    const known: DataSourceId[] = ['satellites','conflict_hotspots','news_feed','sitrep_alerts','news_channels','geo_convergence'];
+    const known: DataSourceId[] = ['satellites','conflict_hotspots','news_feed','sitrep_alerts','news_channels','geo_convergence', 'maritime'];
     return known.includes(id as DataSourceId);
   }
 }

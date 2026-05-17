@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { SignalData, AssetTick, NewsEvent, RiskParams, SMCZone, ConsensusResult } from '../types/apex';
+import { SignalData, AssetTick, NewsEvent, RiskParams, SMCZone, ConsensusResult, NewsCombatStatus } from '../types/apex';
 import { calcDecay } from '../utils/decay';
 
 // DUMMY DATA FOR VISUALIZATION
@@ -27,6 +27,7 @@ export function useApexData() {
   const [ticks, setTicks] = useState<AssetTick[]>([]);
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [risk, setRisk] = useState<RiskParams>({ kelly: 0.23, lotSize: 0.08, atr: 18.2, stopLevel: 2727.3, targetLevel: 2770.0, maxRisk: '1.0% acct' });
+  const [combatStatus, setCombatStatus] = useState<NewsCombatStatus | null>(null);
 
   // 1. Ticks polling (2s) simulation
   useEffect(() => {
@@ -107,5 +108,21 @@ export function useApexData() {
     return () => clearInterval(interval);
   }, []);
 
-  return { signals, ticks, news, risk };
+  // 4. Combat Status polling (5s - critical window)
+  useEffect(() => {
+    const fetchCombat = async () => {
+      try {
+        const res = await fetch('/api/combat_status');
+        const data = await res.json();
+        setCombatStatus(data);
+      } catch (e) {
+        console.error("Combat fetch failed", e);
+      }
+    };
+    fetchCombat();
+    const interval = setInterval(fetchCombat, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return { signals, ticks, news, risk, combatStatus };
 }

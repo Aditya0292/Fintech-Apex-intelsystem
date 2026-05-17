@@ -1,0 +1,149 @@
+# MASTER UI/UX SPECIFICATION PROMPT: APEX INTELLIGENCE OS
+
+*This document serves as the absolute source of truth and "Master Prompt" for generating, coding, and styling the frontend of the Apex Trading Dashboard. Use this to feed into any frontend agent (like v0, Cursor, or Stitch) to perfectly replicate the "Liquid Glass" institutional-grade aesthetic.*
+
+---
+
+## 1. GLOBAL DESIGN SYSTEM & AESTHETICS
+
+### Theme: "Institutional Cyber-Glass" (Dark Mode Exclusive)
+The dashboard must feel like a terminal used by an elite quantitative hedge fund. It should be intimidatingly professional but highly legible.
+
+*   **Background:** Deep Obsidian `hsl(220, 30%, 6%)`. No flat blacks. It must have a very subtle, slowly moving gradient mesh in the background (using deep blues and purples `hsl(230, 40%, 12%)`).
+*   **Surface Material (Liquid Glass):** All cards and panels use a heavy glassmorphism effect.
+    *   Background: `rgba(255, 255, 255, 0.03)`
+    *   Border: `1px solid rgba(255, 255, 255, 0.08)`
+    *   Backdrop Filter: `blur(16px) saturate(180%)`
+    *   Shadow: `0 8px 32px 0 rgba(0, 0, 0, 0.37)`
+*   **Typography:** 
+    *   *Primary (Headers/Numbers):* **Outfit** or **Inter** (Weight: 600-800) for a sleek, geometric feel.
+    *   *Secondary (Data tables/Logs):* **JetBrains Mono** for all pricing, thresholds, and numerical data. Strict tabular lining.
+*   **Color Palette (Semantic):**
+    *   *Accent/Brand:* Cyan `hsl(190, 90%, 60%)` - Used for active tabs and glowing borders.
+    *   *Bullish/Long:* Neon Emerald `hsl(150, 80%, 50%)` - Glowing, not flat green.
+    *   *Bearish/Short:* Crimson/Neon Rose `hsl(350, 80%, 60%)` - Sharp, urgent.
+    *   *Neutral/Hold:* Slate/Amber `hsl(40, 80%, 60%)`.
+
+---
+
+## 2. PAGE 1: THE COMMAND CENTER (MAIN DASHBOARD)
+*Layout: CSS Grid, 100vh, hidden scrollbars. Fixed panels.*
+
+### A. Top Navigation Bar (The HUD)
+*   **Left:** "APEX // INTEL OS v8" logo with a pulsing green "System Online" dot.
+*   **Center:** Global Risk Metrics. 
+    *   *Elements:* Current Drawdown (%), Daily PnL ($), Active Exposure.
+    *   *Style:* Small micro-cards, glowing green or red depending on state.
+*   **Right:** Time/Timezone clocks (NY, LDN, TOK) using JetBrains Mono, and a User Avatar/Settings cog.
+
+### B. Left Sidebar: Asset & Timeframe Matrix
+*   **Purpose:** Rapid switching between tracked assets.
+*   **UI Elements:**
+    *   Vertical list of assets: `USDJPY`, `XAUUSD`, `EURUSD`, `GBPUSD`.
+    *   Each row has a mini-sparkline (SVG) showing the last 24h trend.
+    *   Next to the asset name, a dynamic "Volatility Profile" badge (e.g., `[HIGH]`, `[LOW-MED]`).
+    *   Below the assets: A segmented control pill for Timeframes: `[ 1H | 4H | 1D ]`.
+
+### C. Center Stage: The Tactical WebGL Charting Engine
+*   **Purpose:** The visual representation of the asset.
+*   **UI Elements:**
+    *   Large edge-to-edge charting area. 
+    *   **Candlesticks:** Clean, wick-heavy, glowing colors.
+    *   **Overlays:** 
+        *   *Order Blocks (OBs):* Rendered as semi-transparent, glowing rectangles stretching from the past.
+        *   *Fair Value Gaps (FVGs):* Rendered as dotted-border horizontal zones.
+        *   *Liquidity Sweeps:* Highlighted with sharp, glowing X icons at the wicks.
+    *   **Floating Toolbar:** Inside the chart, a floating glass pill to toggle overlays (SMC, ICT, Pivots, CSM).
+
+### D. Right Panel: The "Live Signal Scorecard"
+*   **Purpose:** Displaying the 65% accuracy signals in real-time.
+*   **UI Elements:**
+    *   **The Big Gauge:** A large radial progress bar at the top showing the *Current AI Confidence Score* (e.g., `0.63 / 0.60`). If it crosses the operational threshold (0.52), it glows fiercely.
+    *   **Model Agreement Matrix:** A 2x2 grid showing the exact prediction of the 4 ensemble models:
+        *   `[XGB: Bull]` | `[LGBM: Bull]`
+        *   `[LSTM: Bull]`| `[Trans: Neutral]`
+    *   **Confluence Breakdown List:** A vertical progress-bar list detailing *why* the signal fired:
+        *   *DXY Inverse Correlation:* 90% (Bar filled green)
+        *   *SMC OB Strength:* 85%
+        *   *News Sentiment:* 60%
+    *   **Action Button:** A massive, full-width glass button at the bottom: `[ EXECUTE LONG @ Market ]`. Glows only when confidence > threshold.
+
+---
+
+## 3. PAGE 2: GEOPOLITICAL & MACRO INTELLIGENCE
+*Accessed via a tab switch. Focuses on the external features (CSM, DXY, News).*
+
+### A. Left Panel: Currency Strength Meter (CSM) Heatmap
+*   **UI Elements:**
+    *   A radar chart or a detailed vertical matrix ranking the top 8 major currencies from Strongest to Weakest.
+    *   Smooth CSS transitions as the data updates. Strong currencies glow blue/green, weak glow red.
+    *   *Specific Metric:* "USD/JPY Differential Spread" highlighted in a separate glass box.
+
+### B. Center Panel: Live Institutional News Feed
+*   **UI Elements:**
+    *   A constantly scrolling terminal-style feed.
+    *   Each card contains: 
+        *   Timestamp (e.g., `[14:32:01]`).
+        *   Impact Badge (`[HIGH IMPACT]`, `[LOW IMPACT]`).
+        *   Headline text.
+        *   **AI Interpretation:** A small sub-text generated by the AI explaining the *directional bias* of the news (e.g., *"Hawkish Fed tone detected -> Bullish USD"*).
+
+### C. Right Panel: Volatility & Regime Profiler
+*   **UI Elements:**
+    *   **ATR Monitor:** Shows current Average True Range vs 30-day average. 
+    *   **Regime Status:** A dynamic text block (e.g., `STATUS: TRENDING`, `STATUS: CHOP/RANGING`).
+    *   **Triple Barrier Settings:** A small table showing the dynamically calculated Stop Loss and Take Profit pip-distances for the current volatility.
+
+---
+
+## 4. MICRO-INTERACTIONS & ANIMATIONS
+
+*   **The "Sniper" Signal Flash:** When the overall confidence score hits `0.60` or higher, the borders of the entire dashboard should emit a slow, breathing pulse of Cyan/Emerald to alert the trader.
+*   **Hover States:** Every interactive element (buttons, asset rows) must have a `backdrop-filter` transition on hover—becoming slightly less blurry and increasing the border opacity from `0.08` to `0.3` instantly.
+*   **Data Updates:** When numerical data changes (e.g., prices, confidence scores), the numbers should not just snap. They should use a "rolling odometer" animation or a brief yellow flash (color flash) to indicate a tick update.
+*   **Loading States:** No spinning wheels. Use shimmering skeleton loaders inside the liquid glass cards that sweep left to right using a gradient mask.
+
+---
+
+## 5. COMPONENT SPECIFICATIONS (FOR THE DEVELOPER)
+
+### A. The "Glass Card" Base CSS
+```css
+.glass-panel {
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+```
+
+### B. The "Confidence Gauge" Component
+*   Needs to be an SVG circle with a `stroke-dasharray` controlled by React state.
+*   The stroke color interpolates: `< 0.40 (Gray) -> 0.40-0.52 (Yellow/Amber) -> >0.52 (Neon Green) -> >0.60 (Blinding Cyan/Emerald)`.
+
+### C. Data Tables (For Trade Logs)
+*   **Headers:** Uppercase, 10px, spacing: `2px`, color: `rgba(255,255,255,0.4)`.
+*   **Rows:** Border-bottom `1px solid rgba(255,255,255,0.05)`. Hovering a row highlights the entire row with a subtle white gradient.
+*   **Cells:** Must strictly align right for numbers.
+
+### D. The "Execute" Button
+```css
+.btn-execute {
+  background: rgba(0, 255, 128, 0.1);
+  border: 1px solid rgba(0, 255, 128, 0.4);
+  color: #00ff80;
+  text-shadow: 0 0 8px rgba(0, 255, 128, 0.5);
+  box-shadow: inset 0 0 10px rgba(0, 255, 128, 0.2), 0 0 20px rgba(0, 255, 128, 0.2);
+  transition: all 0.2s ease-out;
+}
+.btn-execute:hover {
+  background: rgba(0, 255, 128, 0.2);
+  box-shadow: inset 0 0 15px rgba(0, 255, 128, 0.4), 0 0 30px rgba(0, 255, 128, 0.4);
+  transform: scale(1.02);
+}
+```
+
+---
+*End of Master Prompt. Feed this directly to the UI development engine.*
